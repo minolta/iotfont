@@ -1,0 +1,36 @@
+<div class="page">
+  <a routerLink="/job-groups" class="back">← Back to job groups</a>
+  <h1>Edit job group</h1>
+
+  @if (loading()) {
+    <p class="status">Loading…</p>
+  } @else if (loadError(); as le) {
+    <p class="error-banner" role="alert">{{ le }}</p>
+  } @else {
+    @if (saveError(); as se) {
+      <p class="error-banner" role="alert">{{ se }}</p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="field" [class.invalid]="form.controls.name.invalid && form.controls.name.touched">
+        <label for="job-group-edit-name">Name</label>
+        <input
+          id="job-group-edit-name"
+          type="text"
+          formControlName="name"
+          autocomplete="off"
+          [readonly]="submitting()"
+        />
+        @if (form.controls.name.invalid && form.controls.name.touched) {
+          <span class="err">Name is required.</span>
+        }
+      </div>
+
+      <div class="actions">
+        <button type="submit" [disabled]="submitting()">
+          {{ submitting() ? 'Saving…' : 'Save changes' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

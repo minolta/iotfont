@@ -1,0 +1,132 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+.app-shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #f3f4f6;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.75rem 1.25rem;
+  background: #111827;
+  color: #fff;
+}
+
+.brand {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+
+.app-nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.app-nav a {
+  color: #d1d5db;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+}
+
+.app-nav a:hover {
+  color: #fff;
+  background: rgb(255 255 255 / 0.08);
+}
+
+.app-nav a.active {
+  color: #fff;
+  background: rgb(255 255 255 / 0.12);
+}
+
+.nav-group {
+  position: relative;
+}
+
+.nav-group-label {
+  color: #d1d5db;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.nav-group-label::after {
+  content: '▾';
+  margin-left: 0.35rem;
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+
+.nav-group-label:hover,
+.nav-group:hover .nav-group-label,
+.nav-group:focus-within .nav-group-label {
+  color: #fff;
+  background: rgb(255 255 255 / 0.08);
+}
+
+.nav-group-label.active,
+.nav-group:has(.nav-group-menu a.active) .nav-group-label {
+  color: #fff;
+  background: rgb(255 255 255 / 0.12);
+}
+
+.nav-group-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  min-width: 11rem;
+  padding: 0.35rem;
+  border-radius: 8px;
+  background: #1f2937;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  box-shadow: 0 10px 24px rgb(0 0 0 / 0.25);
+  z-index: 20;
+}
+
+.nav-group:hover .nav-group-menu,
+.nav-group:focus-within .nav-group-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.nav-group-menu a {
+  display: block;
+  color: #d1d5db;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.45rem 0.65rem;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.nav-group-menu a:hover {
+  color: #fff;
+  background: rgb(255 255 255 / 0.08);
+}
+
+.nav-group-menu a.active {
+  color: #fff;
+  background: rgb(255 255 255 / 0.12);
+}
+
+.app-main {
+  flex: 1;
+}

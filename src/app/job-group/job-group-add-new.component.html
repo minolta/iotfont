@@ -1,0 +1,25 @@
+<div class="page">
+  <a routerLink="/job-groups" class="back">← Back to job groups</a>
+  <h1>Add job group</h1>
+  <p class="hint">Jobs in the same group will not run at the same time.</p>
+
+  @if (errorMessage(); as msg) {
+    <p class="error-banner" role="alert">{{ msg }}</p>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field" [class.invalid]="form.controls.name.invalid && form.controls.name.touched">
+      <label for="job-group-name">Name</label>
+      <input id="job-group-name" type="text" formControlName="name" autocomplete="off" />
+      @if (form.controls.name.invalid && form.controls.name.touched) {
+        <span class="err">Name is required.</span>
+      }
+    </div>
+
+    <div class="actions">
+      <button type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Saving…' : 'Create job group' }}
+      </button>
+    </div>
+  </form>
+</div>

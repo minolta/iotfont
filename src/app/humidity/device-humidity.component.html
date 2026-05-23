@@ -1,0 +1,175 @@
+<div class="humidity-page">
+  <a routerLink="/devices" class="back">← Back to devices</a>
+
+  @if (deviceLoading()) {
+    <p class="status">Loading device…</p>
+  } @else if (deviceError(); as err) {
+    <p class="error-banner" role="alert">{{ err }}</p>
+  } @else {
+    <div class="page-header">
+      <div>
+        <h1>Humidity</h1>
+        <p class="hint">Temperature and humidity readings by device.</p>
+      </div>
+      <div class="header-actions">
+        <label class="auto-refresh-toggle">
+          <input
+            type="checkbox"
+            [checked]="autoRefreshEnabled()"
+            (change)="toggleAutoRefresh($any($event.target).checked)"
+          />
+          Auto refresh (5s)
+        </label>
+        <button
+          type="button"
+          class="refresh-btn"
+          [disabled]="readingsLoading() && readings().length === 0"
+          (click)="refresh()"
+        >
+          {{ readingsLoading() && readings().length === 0 ? 'Refreshing…' : 'Refresh' }}
+        </button>
+      </div>
+      <div class="device-field">
+        <label class="label-text" for="humidity-device">Device</label>
+        <select
+          id="humidity-device"
+          [disabled]="devicesLoading() || devices().length === 0"
+          (change)="onDeviceChange($any($event.target).value)"
+        >
+          @if (devicesLoading()) {
+            <option value="">Loading devices…</option>
+          } @else {
+            @for (item of devices(); track item.id) {
+              <option [value]="item.id" [selected]="item.id === deviceId()">
+                {{ deviceOptionLabel(item) }}
+              </option>
+            }
+          }
+        </select>
+      </div>
+    </div>
+
+    @if (devicesError(); as de) {
+      <p class="error" role="alert">{{ de }}</p>
+    }
+
+    <section class="latest-card" aria-labelledby="latest-heading">
+      <h2 id="latest-heading">Latest reading</h2>
+      @if (latestLoading()) {
+        <p class="status">Loading latest…</p>
+      } @else if (latest(); as reading) {
+        <dl class="latest-grid">
+          <div>
+            <dt>Humidity (%)</dt>
+            <dd>{{ formatReading(reading.h) }}</dd>
+          </div>
+          <div>
+            <dt>Temperature (°C)</dt>
+            <dd>{{ formatReading(reading.t) }}</dd>
+          </div>
+          <div>
+            <dt>Read time</dt>
+            <dd>{{ formatDate(reading.readtime) }}</dd>
+          </div>
+        </dl>
+      } @else if (latestError(); as le) {
+        <p class="muted">{{ le }}</p>
+      }
+    </section>
+
+    <app-humidity-chart
+      [readings]="readings()"
+      [loading]="readingsLoading()"
+      [paginated]="!useDateFilter()"
+    />
+
+    <section class="readings-section" aria-labelledby="readings-heading">
+      <div class="section-header">
+        <h2 id="readings-heading">Reading history</h2>
+        @if (readingsLoading()) {
+          <span class="status" aria-live="polite">Loading…</span>
+        }
+      </div>
+
+      <div class="filter-bar">
+        <div class="date-field">
+          <label class="label-text" for="humidity-start">From</label>
+          <input
+            id="humidity-start"
+            type="datetime-local"
+            [value]="startDate()"
+            (input)="onStartDateInput($any($event.target).value)"
+          />
+        </div>
+        <div class="date-field">
+          <label class="label-text" for="humidity-end">To</label>
+          <input
+            id="humidity-end"
+            type="datetime-local"
+            [value]="endDate()"
+            (input)="onEndDateInput($any($event.target).value)"
+          />
+        </div>
+        <button type="button" class="filter-btn" (click)="applyDateFilter()">Apply range</button>
+        @if (useDateFilter()) {
+          <button type="button" class="clear-btn" (click)="clearDateFilter()">Clear range</button>
+        }
+      </div>
+
+      @if (readingsError(); as re) {
+        <p class="error" role="alert">{{ re }}</p>
+      }
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Humidity (%)</th>
+              <th>Temperature (°C)</th>
+              <th>Read time</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (readingsLoading() && readings().length === 0) {
+              <tr>
+                <td class="empty" colspan="4">Loading…</td>
+              </tr>
+            }
+            @for (reading of readings(); track reading.id) {
+              <tr>
+                <td class="mono">{{ reading.id }}</td>
+                <td class="mono">{{ formatReading(reading.h) }}</td>
+                <td class="mono">{{ formatReading(reading.t) }}</td>
+                <td class="mono">{{ formatDate(reading.readtime) }}</td>
+              </tr>
+            } @empty {
+              @if (!readingsLoading()) {
+                <tr>
+                  <td class="empty" colspan="4">No readings found.</td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (!useDateFilter()) {
+        <div class="pager">
+          <button type="button" class="pager-btn" [disabled]="page() <= 0" (click)="previousPage()">
+            Previous
+          </button>
+          <span class="pager-label">Page {{ page() + 1 }}</span>
+          <button
+            type="button"
+            class="pager-btn"
+            [disabled]="readings().length < pageSize"
+            (click)="nextPage()"
+          >
+            Next
+          </button>
+        </div>
+      }
+    </section>
+  }
+</div>

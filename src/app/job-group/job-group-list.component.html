@@ -1,0 +1,87 @@
+<div class="list-page">
+  <h1>Job groups</h1>
+  <p class="hint">Group jobs so only one job in a group runs at a time.</p>
+
+  @if (createdId(); as cid) {
+    <p class="success-banner">
+      Job group #{{ cid }} created.
+      <a routerLink="/job-groups">Dismiss</a>
+    </p>
+  }
+  @if (updatedId(); as uid) {
+    <p class="success-banner success-banner--muted">
+      Job group #{{ uid }} updated.
+      <a routerLink="/job-groups">Dismiss</a>
+    </p>
+  }
+
+  <div class="toolbar">
+    <div class="search-field">
+      <label class="label-text" for="job-group-search">Search</label>
+      <input
+        id="job-group-search"
+        type="search"
+        autocomplete="off"
+        placeholder="Name…"
+        [value]="searchTerm()"
+        (input)="onSearchInput($any($event.target).value)"
+      />
+    </div>
+    @if (loading()) {
+      <span class="status" aria-live="polite">Loading…</span>
+    }
+    <a routerLink="/job-groups/new" class="add-link">Add job group</a>
+  </div>
+
+  @if (error(); as err) {
+    <p class="error" role="alert">{{ err }}</p>
+  }
+  @if (deleteError(); as delErr) {
+    <p class="error" role="alert">{{ delErr }}</p>
+  }
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th class="col-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading() && jobGroups().length === 0) {
+          <tr>
+            <td class="empty" colspan="3">Loading…</td>
+          </tr>
+        }
+        @for (item of jobGroups(); track item.id) {
+          <tr>
+            <td class="mono">{{ item.id }}</td>
+            <td>
+              <a [routerLink]="['/job-groups', item.id, 'edit']" class="name-link">
+                {{ displayValue(item.name) }}
+              </a>
+            </td>
+            <td class="col-actions">
+              <button
+                type="button"
+                class="delete-btn"
+                [disabled]="deletingId() === item.id"
+                (click)="deleteJobGroup(item)"
+              >
+                {{ deletingId() === item.id ? 'Deleting…' : 'Delete' }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          @if (!loading()) {
+            <tr>
+              <td class="empty" colspan="3">No job groups found.</td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

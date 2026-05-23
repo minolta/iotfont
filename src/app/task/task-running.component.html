@@ -1,0 +1,103 @@
+<div class="task-page">
+  <div class="page-header">
+    <div>
+      <h1>Running tasks</h1>
+      <p class="hint">Live view of jobs executing in TaskService, including humidity jobs that read sensors before GPIO ports.</p>
+    </div>
+    <div class="header-actions">
+      <label class="auto-refresh-toggle">
+        <input
+          type="checkbox"
+          [checked]="autoRefreshEnabled()"
+          (change)="toggleAutoRefresh($any($event.target).checked)"
+        />
+        Auto refresh (5s)
+      </label>
+      <button type="button" class="refresh-btn" [disabled]="loading()" (click)="refresh()">
+        {{ loading() ? 'Refreshing…' : 'Refresh' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="summary-card">
+    <div class="summary-stat">
+      <span class="summary-label">Active now</span>
+      <span class="summary-value">{{ activeCount() }}</span>
+    </div>
+    <div class="summary-stat">
+      <span class="summary-label">Buffer size</span>
+      <span class="summary-value">{{ bufferSize() }}</span>
+    </div>
+    @if (bufferSize() > activeCount()) {
+      <span class="summary-meta">{{ bufferSize() - activeCount() }} finished, awaiting cleanup</span>
+    }
+  </div>
+
+  @if (error(); as err) {
+    <p class="error-banner" role="alert">{{ err }}</p>
+  }
+  @if (killError(); as ke) {
+    <p class="error-banner" role="alert">{{ ke }}</p>
+  }
+
+  @if (loading() && tasks().length === 0) {
+    <p class="status">Loading…</p>
+  } @else if (tasks().length === 0) {
+    <p class="empty-hint">No tasks in the runner buffer right now.</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Job</th>
+            <th>Device</th>
+            <th>Job type</th>
+            <th>Status</th>
+            <th>State</th>
+            <th>Started</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (task of tasks(); track task.jobId) {
+            <tr>
+              <td>
+                <a [routerLink]="['/jobs', task.jobId, 'edit']" class="task-link">
+                  {{ taskLabel(task) }}
+                </a>
+              </td>
+              <td>{{ deviceLabel(task) }}</td>
+              <td>{{ displayValue(task.jobTypeName) }}</td>
+              <td>
+                @if (task.running) {
+                  <span class="badge badge--on">Running</span>
+                } @else {
+                  <span class="badge badge--off">Finished</span>
+                }
+              </td>
+              <td class="mono">{{ displayValue(task.state) }}</td>
+              <td class="mono">{{ formatDateTime(task.startedAt) }}</td>
+              <td class="col-actions">
+                @if (task.running) {
+                  <button
+                    type="button"
+                    class="kill-btn"
+                    [disabled]="killingJobId() === task.jobId"
+                    (click)="killTask(task)"
+                  >
+                    {{ killingJobId() === task.jobId ? 'Killing…' : 'Kill' }}
+                  </button>
+                }
+                @if (task.deviceId) {
+                  <a [routerLink]="['/jobs']" [queryParams]="{ deviceId: task.deviceId }" class="view-link">
+                    Jobs
+                  </a>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

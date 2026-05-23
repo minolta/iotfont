@@ -1,0 +1,85 @@
+<section class="subsection" aria-labelledby="job-sensors-heading">
+  <div class="subsection-header">
+    <div class="subsection-title-wrap">
+      <h2 id="job-sensors-heading">
+        Sensors
+        <span class="subsection-badge">{{ sensors().length }}</span>
+      </h2>
+      <p class="subsection-hint">Optional sensor reads from device HTTP endpoints when this job runs.</p>
+    </div>
+    <button type="button" class="secondary-btn" [disabled]="disabled()" (click)="addSensor.emit()">
+      + Add sensor
+    </button>
+  </div>
+
+  @if (sensors().length === 0) {
+    <p class="subsection-empty">No sensors configured. Click “Add sensor” to read humidity, voltage, or generic data.</p>
+  } @else {
+    <div class="subsection-list">
+      @for (sensorGroup of sensors().controls; track $index) {
+        <div class="subsection-card" [formGroup]="$any(sensorGroup)">
+          <div class="subsection-card-header">
+            <span class="subsection-card-label">Sensor {{ $index + 1 }}</span>
+            <button type="button" class="remove-btn" [disabled]="disabled()" (click)="removeSensor($index)">
+              Remove
+            </button>
+          </div>
+
+          <div class="subsection-grid">
+            <div class="field">
+              <label [for]="'sensor-device-' + $index">Sensor device</label>
+              <select [id]="'sensor-device-' + $index" formControlName="deviceId" [disabled]="disabled()">
+                <option value="">Select device…</option>
+                @for (device of devices(); track device.id) {
+                  <option [value]="device.id">
+                    #{{ device.id }} — {{ device.name?.trim() || device.code?.trim() || 'Device' }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label [for]="'sensor-name-' + $index">Name</label>
+              <input
+                [id]="'sensor-name-' + $index"
+                type="text"
+                formControlName="name"
+                placeholder="Optional label"
+                autocomplete="off"
+                [readonly]="disabled()"
+              />
+            </div>
+
+            <div class="field">
+              <label [for]="'sensor-type-' + $index">Type</label>
+              <select [id]="'sensor-type-' + $index" formControlName="sensorType" [disabled]="disabled()">
+                @for (option of sensorTypeOptions; track option) {
+                  <option [value]="option">{{ option }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field field--wide">
+              <label [for]="'sensor-path-' + $index">Read path</label>
+              <input
+                [id]="'sensor-path-' + $index"
+                type="text"
+                formControlName="readPath"
+                placeholder="/"
+                spellcheck="false"
+                autocomplete="off"
+                [readonly]="disabled()"
+              />
+              <span class="field-hint">HTTP path on device IP, e.g. / or /status</span>
+            </div>
+
+            <div class="field checkbox-field">
+              <input [id]="'sensor-enable-' + $index" type="checkbox" formControlName="enable" [disabled]="disabled()" />
+              <label [for]="'sensor-enable-' + $index">Enabled</label>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</section>

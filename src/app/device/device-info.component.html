@@ -1,0 +1,244 @@
+<div class="info-page">
+  <a routerLink="/devices" class="back">← Back to devices</a>
+
+  <div class="page-header">
+    <div>
+      <h1>Device information</h1>
+      <p class="hint">Organize devices into groups. Each group has its own devices and table fields.</p>
+    </div>
+    <div class="header-actions">
+      <div class="auto-refresh-controls">
+        <label class="auto-refresh-toggle">
+          <input
+            type="checkbox"
+            [checked]="autoRefreshEnabled()"
+            (change)="toggleAutoRefresh($any($event.target).checked)"
+          />
+          Auto refresh
+        </label>
+        <select
+          class="interval-select"
+          [value]="autoRefreshSeconds()"
+          [disabled]="!autoRefreshEnabled()"
+          (change)="onAutoRefreshInterval($any($event.target).value)"
+        >
+          @for (sec of refreshIntervals; track sec) {
+            <option [value]="sec">{{ sec }}s</option>
+          }
+        </select>
+      </div>
+      <button
+        type="button"
+        class="refresh-btn"
+        [disabled]="selectedIds().length === 0 || liveLoading()"
+        (click)="refresh()"
+      >
+        {{ liveLoading() ? 'Refreshing…' : 'Refresh' }}
+      </button>
+    </div>
+  </div>
+
+  @if (devicesError(); as de) {
+    <p class="error-banner" role="alert">{{ de }}</p>
+  }
+
+  @if (devicesLoading()) {
+    <p class="status">Loading device list…</p>
+  } @else if (devices().length === 0) {
+    <p class="muted">No devices registered.</p>
+  } @else {
+    <section class="groups-panel" aria-labelledby="groups-heading">
+      <div class="groups-header">
+        <h2 id="groups-heading">Display group</h2>
+        @if (activeGroup(); as group) {
+          <p class="groups-hint">
+            Viewing <strong>{{ group.name }}</strong> — {{ group.deviceIds.length }} device(s),
+            {{ activeColumns().length }} field(s)
+          </p>
+        }
+      </div>
+
+      <div class="group-tabs" role="tablist" aria-label="Display groups">
+        @for (group of groups(); track group.id) {
+          <button
+            type="button"
+            class="group-tab"
+            role="tab"
+            [class.active]="group.id === activeGroupId()"
+            [attr.aria-selected]="group.id === activeGroupId()"
+            (click)="selectGroup(group.id)"
+          >
+            {{ group.name }}
+            <span class="group-count">{{ group.deviceIds.length }}</span>
+          </button>
+        }
+      </div>
+
+      <div class="group-create">
+        <input
+          type="text"
+          class="group-name-input"
+          placeholder="New group name (e.g. Sensor)"
+          [value]="newGroupName()"
+          autocomplete="off"
+          spellcheck="false"
+          (input)="onNewGroupNameInput($any($event.target).value)"
+        />
+        <button type="button" class="secondary-btn" [disabled]="!newGroupName().trim()" (click)="createGroup()">
+          Create group
+        </button>
+        @if (groups().length > 1) {
+          <button type="button" class="text-btn text-btn-danger" (click)="deleteActiveGroup()">
+            Delete group
+          </button>
+        }
+      </div>
+    </section>
+
+    @if (activeGroup(); as group) {
+      <section class="columns-panel" aria-labelledby="columns-heading">
+        <div class="columns-header">
+          <h2 id="columns-heading">Fields for {{ group.name }}</h2>
+          <p class="columns-hint">JSON keys from device response (e.g. uptime, v, i, h, t).</p>
+        </div>
+        <div class="column-list">
+          @for (key of columnKeys(); track $index) {
+            <div class="column-row">
+              <label class="label-text" [for]="'col-key-' + $index">Field</label>
+              <input
+                [id]="'col-key-' + $index"
+                type="text"
+                class="column-input mono"
+                [value]="key"
+                placeholder="json key"
+                spellcheck="false"
+                autocomplete="off"
+                (input)="onColumnInput($index, $any($event.target).value)"
+              />
+              <button
+                type="button"
+                class="column-remove-btn"
+                [disabled]="columnKeys().length <= 1"
+                (click)="removeColumn($index)"
+                aria-label="Remove column"
+              >
+                ×
+              </button>
+            </div>
+          }
+        </div>
+        <div class="columns-actions">
+          <button type="button" class="secondary-btn" (click)="addColumn()">+ Add field</button>
+          <button type="button" class="secondary-btn" (click)="applyColumns()">Apply fields</button>
+          <button type="button" class="text-btn" (click)="resetColumns()">Reset defaults</button>
+        </div>
+      </section>
+
+      <div class="add-bar">
+        <div class="add-field">
+          <label class="label-text" for="info-add-device">Add device to {{ group.name }}</label>
+          <select
+            id="info-add-device"
+            [value]="pickId()"
+            [disabled]="availableDevices().length === 0"
+            (change)="onPickChange($any($event.target).value)"
+          >
+            <option value="">Select a device…</option>
+            @for (device of availableDevices(); track device.id) {
+              <option [value]="device.id">{{ deviceOptionLabel(device) }}</option>
+            }
+          </select>
+        </div>
+        <button type="button" class="add-btn" [disabled]="!pickId()" (click)="addPicked()">Add</button>
+      </div>
+
+      @if (availableDevices().length === 0 && selectedIds().length > 0) {
+        <p class="muted add-hint">All devices are already in this group.</p>
+      }
+
+      @if (selectedIds().length === 0) {
+        <p class="empty-hint">No devices in {{ group.name }}. Pick one above and click Add.</p>
+      } @else if (liveLoading() && liveRows().length === 0) {
+        <p class="status">Loading live data…</p>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Device</th>
+                <th>IP</th>
+                @for (col of activeColumns(); track col) {
+                  <th>{{ columnHeaderLabel(col) }}</th>
+                }
+                <th>Status</th>
+                <th class="col-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of liveRows(); track row.device.id) {
+                <tr>
+                  <td>
+                    <a [routerLink]="['/devices', row.device.id, 'edit']" class="device-link">
+                      {{ row.label }}
+                    </a>
+                  </td>
+                  <td class="mono">
+                    @if (setConfigUrl(row.device.ip); as configUrl) {
+                      <a
+                        [href]="configUrl"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="ip-link"
+                      >
+                        {{ displayValue(row.device.ip) }}
+                      </a>
+                    } @else {
+                      {{ displayValue(row.device.ip) }}
+                    }
+                  </td>
+                  @for (col of activeColumns(); track col) {
+                    <td class="mono">{{ fieldValue(row, col) }}</td>
+                  }
+                  <td>
+                    @if (row.error) {
+                      <span class="status-error" [title]="row.fetchUrl ?? ''">{{ row.error }}</span>
+                    } @else {
+                      <span class="status-ok">OK</span>
+                    }
+                  </td>
+                  <td class="col-actions">
+                    @if (row.rawJson) {
+                      <button type="button" class="json-btn" (click)="toggleRaw(row.device.id)">
+                        {{ expandedId() === row.device.id ? 'Hide' : 'JSON' }}
+                      </button>
+                    }
+                    <button type="button" class="remove-btn" (click)="removeDevice(row.device.id)">
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+                @if (expandedId() === row.device.id && rawJsonText(row); as json) {
+                  <tr class="raw-row">
+                    <td [attr.colspan]="tableColspan()">
+                      @if (row.fetchUrl) {
+                        <p class="endpoint">
+                          <span class="endpoint-label">Source</span>
+                          <code class="mono">{{ row.fetchUrl }}</code>
+                        </p>
+                      }
+                      <pre class="raw-json">{{ json }}</pre>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+  }
+</div>
+
+@if (toastMessage(); as message) {
+  <p class="toast" role="status" aria-live="polite">{{ message }}</p>
+}

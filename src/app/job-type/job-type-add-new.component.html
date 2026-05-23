@@ -1,0 +1,30 @@
+<div class="page">
+  <a routerLink="/job-types" class="back">← Back to job types</a>
+  <h1>Add job type</h1>
+  <p class="hint">Create a job type for scheduling device jobs.</p>
+
+  @if (errorMessage(); as msg) {
+    <p class="error-banner" role="alert">{{ msg }}</p>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field" [class.invalid]="form.controls.name.invalid && form.controls.name.touched">
+      <label for="job-type-name">Name</label>
+      <input id="job-type-name" type="text" formControlName="name" autocomplete="off" />
+      @if (form.controls.name.invalid && form.controls.name.touched) {
+        <span class="err">Name is required.</span>
+      }
+    </div>
+
+    <div class="field">
+      <label for="job-type-description">Description</label>
+      <textarea id="job-type-description" formControlName="description" rows="3"></textarea>
+    </div>
+
+    <div class="actions">
+      <button type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Saving…' : 'Create job type' }}
+      </button>
+    </div>
+  </form>
+</div>

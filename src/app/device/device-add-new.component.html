@@ -1,0 +1,47 @@
+<div class="page">
+  <a routerLink="/devices" class="back">← Back to devices</a>
+  <h1>Add device</h1>
+  <p class="hint">Register a new IoT device. All fields are optional.</p>
+
+  @if (errorMessage(); as msg) {
+    <p class="error-banner" role="alert">{{ msg }}</p>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field">
+      <label for="device-name">Name</label>
+      <input id="device-name" type="text" formControlName="name" autocomplete="off" />
+    </div>
+
+    <div class="field">
+      <label for="device-code">Code</label>
+      <input id="device-code" type="text" formControlName="code" autocomplete="off" />
+    </div>
+
+    <div class="field">
+      <label for="device-ip">IP address</label>
+      <input id="device-ip" type="text" formControlName="ip" autocomplete="off" spellcheck="false" />
+    </div>
+
+    <div class="field">
+      <label for="device-mac">MAC address</label>
+      <input id="device-mac" type="text" formControlName="mac" autocomplete="off" spellcheck="false" />
+    </div>
+
+    <div class="field">
+      <label for="device-version">Version</label>
+      <input id="device-version" type="text" formControlName="version" autocomplete="off" />
+    </div>
+
+    <div class="field">
+      <label for="device-description">Description</label>
+      <textarea id="device-description" formControlName="description" rows="3"></textarea>
+    </div>
+
+    <div class="actions">
+      <button type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Saving…' : 'Create device' }}
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,143 @@
+<div class="list-page">
+  <h1>Jobs</h1>
+  <p class="hint">Scheduled tasks assigned to devices and job types.</p>
+
+  @if (createdId(); as cid) {
+    <p class="success-banner">
+      Job #{{ cid }} created.
+      <a routerLink="/jobs">Dismiss</a>
+    </p>
+  }
+  @if (updatedId(); as uid) {
+    <p class="success-banner success-banner--muted">
+      Job #{{ uid }} updated.
+      <a routerLink="/jobs">Dismiss</a>
+    </p>
+  }
+
+  <div class="toolbar">
+    <div class="search-field">
+      <label class="label-text" for="job-search">Search</label>
+      <input
+        id="job-search"
+        type="search"
+        autocomplete="off"
+        placeholder="Name, description, job type…"
+        [value]="searchTerm()"
+        [disabled]="!!deviceFilter()"
+        (input)="onSearchInput($any($event.target).value)"
+      />
+    </div>
+    <div class="filter-field">
+      <label class="label-text" for="job-device-filter">Device</label>
+      <select
+        id="job-device-filter"
+        [value]="deviceFilter()"
+        (change)="onDeviceFilterChange($any($event.target).value)"
+      >
+        <option value="">All devices</option>
+        @for (device of devices(); track device.id) {
+          <option [value]="device.id">
+            #{{ device.id }} — {{ displayValue(device.name) !== '—' ? displayValue(device.name) : displayValue(device.code) }}
+          </option>
+        }
+      </select>
+    </div>
+    @if (loading()) {
+      <span class="status" aria-live="polite">Loading…</span>
+    }
+    <button type="button" class="export-btn" [disabled]="exporting() || loading()" (click)="exportJobs()">
+      {{ exporting() ? 'Exporting…' : 'Export' }}
+    </button>
+    <a routerLink="/jobs/import" class="view-link">Import</a>
+    <a routerLink="/jobs/new" class="add-link">Add job</a>
+  </div>
+
+  @if (error(); as err) {
+    <p class="error" role="alert">{{ err }}</p>
+  }
+  @if (deleteError(); as delErr) {
+    <p class="error" role="alert">{{ delErr }}</p>
+  }
+  @if (cloneError(); as cloneErr) {
+    <p class="error" role="alert">{{ cloneErr }}</p>
+  }
+  @if (exportError(); as exportErr) {
+    <p class="error" role="alert">{{ exportErr }}</p>
+  }
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Device</th>
+          <th>Job type</th>
+          <th>Group</th>
+          <th>Enabled</th>
+          <th>Priority</th>
+          <th>Runtime</th>
+          <th>Humidity %</th>
+          <th>Temperature °C</th>
+          <th class="col-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading() && jobs().length === 0) {
+          <tr>
+            <td class="empty" colspan="11">Loading…</td>
+          </tr>
+        }
+        @for (job of jobs(); track job.id) {
+          <tr>
+            <td class="mono">{{ job.id }}</td>
+            <td>
+              <a [routerLink]="['/jobs', job.id, 'edit']" class="name-link">
+                {{ displayValue(job.name) }}
+              </a>
+            </td>
+            <td>{{ deviceName(job) }}</td>
+            <td>{{ jobTypeName(job) }}</td>
+            <td>{{ jobGroupName(job) }}</td>
+            <td>
+              @if (job.enable) {
+                <span class="badge badge--on">Yes</span>
+              } @else {
+                <span class="badge badge--off">No</span>
+              }
+            </td>
+            <td class="mono">{{ job.priority ?? '—' }}</td>
+            <td class="mono">{{ job.runtime ?? '—' }}</td>
+            <td class="mono">{{ formatHumidityRange(job.hlow, job.hhigh) }}</td>
+            <td class="mono">{{ formatTemperatureRange(job.tlow, job.thigh) }}</td>
+            <td class="col-actions">
+              <button
+                type="button"
+                class="clone-btn"
+                [disabled]="cloningId() === job.id || deletingId() === job.id"
+                (click)="cloneJob(job)"
+              >
+                {{ cloningId() === job.id ? 'Cloning…' : 'Clone' }}
+              </button>
+              <button
+                type="button"
+                class="delete-btn"
+                [disabled]="deletingId() === job.id"
+                (click)="deleteJob(job)"
+              >
+                {{ deletingId() === job.id ? 'Deleting…' : 'Delete' }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          @if (!loading()) {
+            <tr>
+              <td class="empty" colspan="11">No jobs found.</td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,140 @@
+<div class="page page--wide">
+  <a routerLink="/jobs" class="back">← Back to jobs</a>
+  <h1>Import jobs</h1>
+  <p class="hint">
+    Upload or paste a JSON array of job records (same format as Export). Each object needs
+    <code>name</code>, <code>device_id</code> (or device MAC), and <code>jobtype_id</code> (or job
+    type name). Ports and sensors are optional.
+  </p>
+
+  @if (parseError(); as err) {
+    <p class="error-banner" role="alert">{{ err }}</p>
+  }
+  @if (errorMessage(); as msg) {
+    <p class="error-banner" role="alert">{{ msg }}</p>
+  }
+
+  <div class="import-panel">
+    <div class="field">
+      <label for="job-import-file">JSON file</label>
+      <input
+        id="job-import-file"
+        type="file"
+        accept=".json,application/json"
+        [disabled]="submitting()"
+        (change)="onFileSelected($event)"
+      />
+      <span class="field-hint">Optional — loads file contents into the editor below.</span>
+    </div>
+
+    <div class="field">
+      <label for="job-import-json">Job JSON</label>
+      <textarea
+        id="job-import-json"
+        rows="14"
+        spellcheck="false"
+        placeholder='[
+  {
+    "name": "Humidity control",
+    "device_id": 1,
+    "jobtype_id": 1,
+    "enable": false,
+    "ports": [],
+    "sensors": []
+  }
+]'
+        [value]="jsonText()"
+        [disabled]="submitting()"
+        (input)="onJsonInput($any($event.target).value)"
+      ></textarea>
+    </div>
+
+    <div class="checkbox-field">
+      <input
+        id="job-import-update-existing"
+        type="checkbox"
+        [checked]="updateExisting()"
+        [disabled]="submitting()"
+        (change)="onUpdateExistingChange($any($event.target).checked)"
+      />
+      <label for="job-import-update-existing">Update existing jobs with the same name on the same device</label>
+    </div>
+
+    <div class="actions">
+      <button type="button" [disabled]="submitting()" (click)="submit()">
+        {{ submitting() ? 'Importing…' : 'Import jobs' }}
+      </button>
+    </div>
+  </div>
+
+  @if (result(); as importResult) {
+    <section class="result-panel" aria-live="polite">
+      <h2>Import result</h2>
+      <dl class="result-stats">
+        <div>
+          <dt>Total</dt>
+          <dd>{{ importResult.total }}</dd>
+        </div>
+        <div>
+          <dt>Created</dt>
+          <dd>{{ importResult.created }}</dd>
+        </div>
+        <div>
+          <dt>Updated</dt>
+          <dd>{{ importResult.updated }}</dd>
+        </div>
+        <div>
+          <dt>Skipped</dt>
+          <dd>{{ importResult.skipped }}</dd>
+        </div>
+      </dl>
+
+      @if (importResult.errors.length > 0) {
+        <div class="result-errors">
+          <h3>Errors</h3>
+          <ul>
+            @for (item of importResult.errors; track $index) {
+              <li>{{ item }}</li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (importResult.jobs.length > 0) {
+        <div class="result-jobs">
+          <h3>Imported jobs</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Device</th>
+                  <th>Job type</th>
+                  <th>Enabled</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (job of importResult.jobs; track job.id) {
+                  <tr>
+                    <td class="mono">{{ job.id }}</td>
+                    <td>
+                      <a [routerLink]="['/jobs', job.id, 'edit']">{{ job.name?.trim() || '—' }}</a>
+                    </td>
+                    <td class="mono">{{ job.device_id ?? job.device?.id ?? '—' }}</td>
+                    <td>{{ job.jobtype?.name?.trim() || job.jobtype_id || '—' }}</td>
+                    <td>{{ job.enable ? 'Yes' : 'No' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <p class="result-actions">
+        <a routerLink="/jobs">View all jobs</a>
+      </p>
+    </section>
+  }
+</div>

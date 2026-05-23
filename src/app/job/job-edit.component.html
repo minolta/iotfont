@@ -1,0 +1,201 @@
+<div class="page page--wide">
+  <a routerLink="/jobs" class="back">← Back to jobs</a>
+  <h1>Edit job</h1>
+
+  @if (loading()) {
+    <p class="status">Loading…</p>
+  } @else if (loadError(); as le) {
+    <p class="error-banner" role="alert">{{ le }}</p>
+  } @else {
+    @if (saveError(); as se) {
+      <p class="error-banner" role="alert">{{ se }}</p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field" [class.invalid]="form.controls.name.invalid && form.controls.name.touched">
+        <label for="job-edit-name">Name</label>
+        <input
+          id="job-edit-name"
+          type="text"
+          formControlName="name"
+          autocomplete="off"
+          [readonly]="submitting()"
+        />
+        @if (form.controls.name.invalid && form.controls.name.touched) {
+          <span class="err">Name is required.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="job-edit-description">Description</label>
+        <textarea
+          id="job-edit-description"
+          formControlName="description"
+          rows="3"
+          [readonly]="submitting()"
+        ></textarea>
+      </div>
+
+      <div class="field" [class.invalid]="form.controls.deviceId.invalid && form.controls.deviceId.touched">
+        <label for="job-edit-device">Device</label>
+        <select id="job-edit-device" formControlName="deviceId" [disabled]="submitting()">
+          <option value="">Select device…</option>
+          @for (device of devices(); track device.id) {
+            <option [value]="device.id">
+              #{{ device.id }} — {{ device.name?.trim() || device.code?.trim() || 'Device' }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <div class="field" [class.invalid]="form.controls.jobtypeId.invalid && form.controls.jobtypeId.touched">
+        <label for="job-edit-type">Job type</label>
+        <select id="job-edit-type" formControlName="jobtypeId" [disabled]="submitting()">
+          <option value="">Select job type…</option>
+          @for (jobType of jobTypes(); track jobType.id) {
+            <option [value]="jobType.id">{{ jobType.name?.trim() || ('#' + jobType.id) }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="job-edit-group">Job group</label>
+        <select id="job-edit-group" formControlName="jobGroupId" [disabled]="submitting()">
+          <option value="">No group</option>
+          @for (jobGroup of jobGroups(); track jobGroup.id) {
+            <option [value]="jobGroup.id">{{ jobGroup.name?.trim() || ('#' + jobGroup.id) }}</option>
+          }
+        </select>
+        <span class="field-hint">Optional. Only one job in a group runs at a time.</span>
+      </div>
+
+      <div class="field checkbox-field">
+        <input id="job-edit-enable" type="checkbox" formControlName="enable" [disabled]="submitting()" />
+        <label for="job-edit-enable">Enabled</label>
+      </div>
+
+      <div class="field">
+        <label for="job-edit-priority">Priority</label>
+        <input id="job-edit-priority" type="number" formControlName="priority" step="1" [readonly]="submitting()" />
+      </div>
+
+      <div class="field">
+        <label for="job-edit-runtime">Runtime (seconds)</label>
+        <input id="job-edit-runtime" type="number" formControlName="runtime" min="0" step="1" [readonly]="submitting()" />
+      </div>
+
+      <div class="field">
+        <label for="job-edit-waittime">Wait time (seconds)</label>
+        <input id="job-edit-waittime" type="number" formControlName="waittime" min="0" step="1" [readonly]="submitting()" />
+      </div>
+
+      <div class="field">
+        <label for="job-edit-sdate">Start date</label>
+        <input id="job-edit-sdate" type="datetime-local" formControlName="sdate" [readonly]="submitting()" />
+      </div>
+
+      <div class="field">
+        <label for="job-edit-edate">End date</label>
+        <input id="job-edit-edate" type="datetime-local" formControlName="edate" [readonly]="submitting()" />
+      </div>
+
+      <div class="field">
+        <label for="job-edit-stimes">Daily start time</label>
+        <input id="job-edit-stimes" type="time" formControlName="stimes" [readonly]="submitting()" />
+        <span class="field-hint">Optional. e.g. 09:00</span>
+      </div>
+
+      <div class="field">
+        <label for="job-edit-etimes">Daily end time</label>
+        <input id="job-edit-etimes" type="time" formControlName="etimes" [readonly]="submitting()" />
+        <span class="field-hint">Optional. e.g. 17:00</span>
+      </div>
+
+      <section class="humidity-range-section" aria-labelledby="job-edit-humidity-range-heading">
+        <h2 id="job-edit-humidity-range-heading">Humidity range</h2>
+        <p class="field-hint">
+          For humidity job types. GPIO ports run only when sensor humidity is within this range.
+        </p>
+        <div class="field-row">
+          <div class="field">
+            <label for="job-edit-hlow">Min humidity (%)</label>
+            <input
+              id="job-edit-hlow"
+              type="number"
+              formControlName="hlow"
+              min="0"
+              max="100"
+              step="0.1"
+              placeholder="e.g. 40"
+              [readonly]="submitting()"
+            />
+          </div>
+          <div class="field">
+            <label for="job-edit-hhigh">Max humidity (%)</label>
+            <input
+              id="job-edit-hhigh"
+              type="number"
+              formControlName="hhigh"
+              min="0"
+              max="100"
+              step="0.1"
+              placeholder="e.g. 70"
+              [readonly]="submitting()"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section class="humidity-range-section" aria-labelledby="job-edit-temperature-range-heading">
+        <h2 id="job-edit-temperature-range-heading">Temperature range</h2>
+        <p class="field-hint">
+          For temperature job types. GPIO ports run only when sensor temperature is within this range.
+        </p>
+        <div class="field-row">
+          <div class="field">
+            <label for="job-edit-tlow">Min temperature (°C)</label>
+            <input
+              id="job-edit-tlow"
+              type="number"
+              formControlName="tlow"
+              step="0.1"
+              placeholder="e.g. 18"
+              [readonly]="submitting()"
+            />
+          </div>
+          <div class="field">
+            <label for="job-edit-thigh">Max temperature (°C)</label>
+            <input
+              id="job-edit-thigh"
+              type="number"
+              formControlName="thigh"
+              step="0.1"
+              placeholder="e.g. 28"
+              [readonly]="submitting()"
+            />
+          </div>
+        </div>
+      </section>
+
+      <app-job-ports-section
+        [devices]="devices()"
+        [ports]="portsFormArray"
+        [disabled]="submitting()"
+        (addPort)="addPortRow()"
+      />
+
+      <app-job-sensors-section
+        [devices]="devices()"
+        [sensors]="sensorsFormArray"
+        [disabled]="submitting()"
+        (addSensor)="addSensorRow()"
+      />
+
+      <div class="actions">
+        <button type="submit" [disabled]="submitting()">
+          {{ submitting() ? 'Saving…' : 'Save changes' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

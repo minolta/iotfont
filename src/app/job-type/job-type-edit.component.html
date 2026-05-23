@@ -1,0 +1,46 @@
+<div class="page">
+  <a routerLink="/job-types" class="back">← Back to job types</a>
+  <h1>Edit job type</h1>
+
+  @if (loading()) {
+    <p class="status">Loading…</p>
+  } @else if (loadError(); as le) {
+    <p class="error-banner" role="alert">{{ le }}</p>
+  } @else {
+    @if (saveError(); as se) {
+      <p class="error-banner" role="alert">{{ se }}</p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field" [class.invalid]="form.controls.name.invalid && form.controls.name.touched">
+        <label for="job-type-edit-name">Name</label>
+        <input
+          id="job-type-edit-name"
+          type="text"
+          formControlName="name"
+          autocomplete="off"
+          [readonly]="submitting()"
+        />
+        @if (form.controls.name.invalid && form.controls.name.touched) {
+          <span class="err">Name is required.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="job-type-edit-description">Description</label>
+        <textarea
+          id="job-type-edit-description"
+          formControlName="description"
+          rows="3"
+          [readonly]="submitting()"
+        ></textarea>
+      </div>
+
+      <div class="actions">
+        <button type="submit" [disabled]="submitting()">
+          {{ submitting() ? 'Saving…' : 'Save changes' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

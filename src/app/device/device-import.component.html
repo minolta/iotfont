@@ -1,0 +1,136 @@
+<div class="page page--wide">
+  <a routerLink="/devices" class="back">← Back to devices</a>
+  <h1>Import devices</h1>
+  <p class="hint">
+    Upload or paste a JSON array of device records. Each object may include
+    <code>name</code>, <code>code</code>, <code>ip</code>, <code>mac</code>,
+    <code>description</code>, and <code>version</code>.
+  </p>
+
+  @if (parseError(); as err) {
+    <p class="error-banner" role="alert">{{ err }}</p>
+  }
+  @if (errorMessage(); as msg) {
+    <p class="error-banner" role="alert">{{ msg }}</p>
+  }
+
+  <div class="import-panel">
+    <div class="field">
+      <label for="device-import-file">JSON file</label>
+      <input
+        id="device-import-file"
+        type="file"
+        accept=".json,application/json"
+        [disabled]="submitting()"
+        (change)="onFileSelected($event)"
+      />
+      <span class="field-hint">Optional — loads file contents into the editor below.</span>
+    </div>
+
+    <div class="field">
+      <label for="device-import-json">Device JSON</label>
+      <textarea
+        id="device-import-json"
+        rows="14"
+        spellcheck="false"
+        placeholder='[
+  {
+    "name": "Sensor A",
+    "code": "SEN-A",
+    "ip": "192.168.1.10",
+    "mac": "AA:BB:CC:DD:EE:01"
+  }
+]'
+        [value]="jsonText()"
+        [disabled]="submitting()"
+        (input)="onJsonInput($any($event.target).value)"
+      ></textarea>
+    </div>
+
+    <div class="checkbox-field">
+      <input
+        id="device-import-update-existing"
+        type="checkbox"
+        [checked]="updateExisting()"
+        [disabled]="submitting()"
+        (change)="onUpdateExistingChange($any($event.target).checked)"
+      />
+      <label for="device-import-update-existing">Update existing devices matched by MAC address</label>
+    </div>
+
+    <div class="actions">
+      <button type="button" [disabled]="submitting()" (click)="submit()">
+        {{ submitting() ? 'Importing…' : 'Import devices' }}
+      </button>
+    </div>
+  </div>
+
+  @if (result(); as importResult) {
+    <section class="result-panel" aria-live="polite">
+      <h2>Import result</h2>
+      <dl class="result-stats">
+        <div>
+          <dt>Total</dt>
+          <dd>{{ importResult.total }}</dd>
+        </div>
+        <div>
+          <dt>Created</dt>
+          <dd>{{ importResult.created }}</dd>
+        </div>
+        <div>
+          <dt>Updated</dt>
+          <dd>{{ importResult.updated }}</dd>
+        </div>
+        <div>
+          <dt>Skipped</dt>
+          <dd>{{ importResult.skipped }}</dd>
+        </div>
+      </dl>
+
+      @if (importResult.errors.length > 0) {
+        <div class="result-errors">
+          <h3>Errors</h3>
+          <ul>
+            @for (item of importResult.errors; track $index) {
+              <li>{{ item }}</li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (importResult.devices.length > 0) {
+        <div class="result-devices">
+          <h3>Imported devices</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Code</th>
+                  <th>IP</th>
+                  <th>MAC</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (device of importResult.devices; track device.id) {
+                  <tr>
+                    <td class="mono">{{ device.id }}</td>
+                    <td>{{ device.name?.trim() || '—' }}</td>
+                    <td class="mono">{{ device.code?.trim() || '—' }}</td>
+                    <td class="mono">{{ device.ip?.trim() || '—' }}</td>
+                    <td class="mono">{{ device.mac?.trim() || '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <p class="result-actions">
+        <a routerLink="/devices">View all devices</a>
+      </p>
+    </section>
+  }
+</div>
