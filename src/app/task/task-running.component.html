@@ -28,6 +28,24 @@
       <span class="summary-label">Buffer size</span>
       <span class="summary-value">{{ bufferSize() }}</span>
     </div>
+    <div class="summary-stat summary-stat--heap">
+      <span class="summary-label">Heap memory</span>
+      <span class="summary-value">{{ heapUsedLabel() }}</span>
+      <span class="summary-meta">of {{ heapMaxLabel() }}</span>
+      @if (heapUsagePercent(); as percent) {
+        <div
+          class="heap-bar"
+          role="progressbar"
+          [attr.aria-valuenow]="percent"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          [attr.aria-label]="'Heap used ' + percent + ' percent'"
+        >
+          <span class="heap-bar-fill" [style.width.%]="percent"></span>
+        </div>
+        <span class="summary-meta">{{ percent }}% used</span>
+      }
+    </div>
     @if (bufferSize() > activeCount()) {
       <span class="summary-meta">{{ bufferSize() - activeCount() }} finished, awaiting cleanup</span>
     }

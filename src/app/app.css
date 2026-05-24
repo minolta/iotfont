@@ -30,6 +30,120 @@
 .app-nav {
   display: flex;
   gap: 0.5rem;
+  flex: 1;
+}
+
+.api-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+  padding-left: 1rem;
+  border-left: 1px solid rgb(255 255 255 / 0.12);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: auto;
+}
+
+.user-menu {
+  position: relative;
+}
+
+.user-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #f9fafb;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  cursor: default;
+}
+
+.user-name::after {
+  content: '▾';
+  margin-left: 0.35rem;
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+
+.user-menu:hover .user-name,
+.user-menu:focus-within .user-name {
+  background: rgb(255 255 255 / 0.08);
+}
+
+.user-menu-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  min-width: 11rem;
+  padding: 0.35rem;
+  border-radius: 8px;
+  background: #1f2937;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  box-shadow: 0 10px 24px rgb(0 0 0 / 0.25);
+  z-index: 20;
+}
+
+.user-menu:hover .user-menu-dropdown,
+.user-menu:focus-within .user-menu-dropdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.user-menu-dropdown a,
+.logout-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  color: #d1d5db;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.45rem 0.65rem;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.user-menu-dropdown a:hover,
+.logout-btn:hover {
+  color: #fff;
+  background: rgb(255 255 255 / 0.08);
+}
+
+.user-menu-dropdown a.active {
+  color: #fff;
+  background: rgb(255 255 255 / 0.12);
+}
+
+.app-main--full {
+  min-height: 100dvh;
+}
+
+.api-time-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+}
+
+.api-time-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8rem;
+  color: #f9fafb;
+  white-space: nowrap;
+}
+
+.api-time--offline .api-time-value {
+  color: #fca5a5;
 }
 
 .app-nav a {

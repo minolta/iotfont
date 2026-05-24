@@ -428,7 +428,7 @@ export class DeviceInfoComponent {
         error: 'No IP configured.',
       });
     }
-    return this.deviceInfoService.fetchLiveJson(ip).pipe(
+    return this.deviceInfoService.fetchLiveJson(device.id).pipe(
       map(
         (data) =>
           ({
@@ -465,7 +465,17 @@ export class DeviceInfoComponent {
     }
     if (err instanceof HttpErrorResponse) {
       if (err.status === 0) {
-        return 'Unreachable (check IP / CORS).';
+        return 'Unreachable (check IP / network).';
+      }
+      const body = err.error;
+      if (typeof body === 'string' && body.trim()) {
+        return body;
+      }
+      if (body && typeof body === 'object' && 'message' in body) {
+        const message = (body as { message?: unknown }).message;
+        if (typeof message === 'string' && message.trim()) {
+          return message;
+        }
       }
       return `HTTP ${err.status}`;
     }

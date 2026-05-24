@@ -1,0 +1,186 @@
+<div class="readv-page">
+  <div class="page-header">
+    <div>
+      <h1>ReadV — battery voltage</h1>
+      <p class="hint">Voltage, current, and power readings saved by ReadV jobs.</p>
+    </div>
+    <div class="header-actions">
+      <label class="auto-refresh-toggle">
+        <input
+          type="checkbox"
+          [checked]="autoRefreshEnabled()"
+          (change)="toggleAutoRefresh($any($event.target).checked)"
+        />
+        Auto refresh (5s)
+      </label>
+      <button
+        type="button"
+        class="refresh-btn"
+        [disabled]="readingsLoading() && readings().length === 0"
+        (click)="refresh()"
+      >
+        {{ readingsLoading() && readings().length === 0 ? 'Refreshing…' : 'Refresh' }}
+      </button>
+    </div>
+    <div class="device-field">
+      <label class="label-text" for="readv-device">Device</label>
+      <select
+        id="readv-device"
+        [value]="deviceId() ?? ''"
+        [disabled]="devicesLoading() || devices().length === 0"
+        (change)="onDeviceChange($any($event.target).value)"
+      >
+        @if (devicesLoading()) {
+          <option value="">Loading devices…</option>
+        } @else if (devices().length === 0) {
+          <option value="">No devices</option>
+        } @else {
+          @for (item of devices(); track item.id) {
+            <option [value]="item.id">{{ deviceOptionLabel(item) }}</option>
+          }
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (devicesError(); as de) {
+    <p class="error" role="alert">{{ de }}</p>
+  }
+
+  <section class="latest-card" aria-labelledby="latest-heading">
+    <h2 id="latest-heading">Latest reading — {{ selectedDeviceLabel() }}</h2>
+    @if (latestLoading()) {
+      <p class="status">Loading latest…</p>
+    } @else if (latest(); as reading) {
+      <dl class="latest-grid">
+        <div>
+          <dt>Voltage (V)</dt>
+          <dd>{{ formatReading(reading.v) }}</dd>
+        </div>
+        <div>
+          <dt>Current (A)</dt>
+          <dd>{{ formatReading(reading.i) }}</dd>
+        </div>
+        <div>
+          <dt>Power (W)</dt>
+          <dd>{{ formatReading(reading.p) }}</dd>
+        </div>
+        <div>
+          <dt>Energy</dt>
+          <dd>{{ formatReading(reading.e) }}</dd>
+        </div>
+        <div>
+          <dt>Read time</dt>
+          <dd class="read-time">{{ formatDate(reading.readtime) }}</dd>
+        </div>
+      </dl>
+    } @else if (latestError(); as le) {
+      <p class="muted">{{ le }}</p>
+    }
+  </section>
+
+  <app-readv-chart
+    [readings]="readings()"
+    [loading]="readingsLoading()"
+    [paginated]="!useDateFilter()"
+  />
+
+  <section class="readings-section" aria-labelledby="readings-heading">
+    <div class="section-header">
+      <h2 id="readings-heading">Reading history</h2>
+      @if (readingsLoading()) {
+        <span class="status" aria-live="polite">Loading…</span>
+      }
+    </div>
+
+    <div class="filter-bar">
+      <div class="date-field">
+        <label class="label-text" for="readv-start">From</label>
+        <input
+          id="readv-start"
+          type="datetime-local"
+          [value]="startDate()"
+          (input)="onStartDateInput($any($event.target).value)"
+        />
+      </div>
+      <div class="date-field">
+        <label class="label-text" for="readv-end">To</label>
+        <input
+          id="readv-end"
+          type="datetime-local"
+          [value]="endDate()"
+          (input)="onEndDateInput($any($event.target).value)"
+        />
+      </div>
+      <button type="button" class="filter-btn" (click)="applyDateFilter()">Apply range</button>
+      @if (useDateFilter()) {
+        <button type="button" class="clear-btn" (click)="clearDateFilter()">Clear range</button>
+      }
+    </div>
+
+    @if (readingsError(); as re) {
+      <p class="error" role="alert">{{ re }}</p>
+    }
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Voltage (V)</th>
+            <th>Current (A)</th>
+            <th>Power (W)</th>
+            <th>Energy</th>
+            <th>Read time</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (readingsLoading() && readings().length === 0) {
+            <tr>
+              <td class="empty" colspan="6">Loading…</td>
+            </tr>
+          }
+          @for (reading of readings(); track reading.id) {
+            <tr>
+              <td class="mono">{{ reading.id }}</td>
+              <td class="mono">{{ formatReading(reading.v) }}</td>
+              <td class="mono">{{ formatReading(reading.i) }}</td>
+              <td class="mono">{{ formatReading(reading.p) }}</td>
+              <td class="mono">{{ formatReading(reading.e) }}</td>
+              <td class="mono">{{ formatDate(reading.readtime) }}</td>
+            </tr>
+          } @empty {
+            @if (!readingsLoading()) {
+              <tr>
+                <td class="empty" colspan="6">No readings found.</td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (!useDateFilter()) {
+      <div class="pager">
+        <button type="button" class="pager-btn" [disabled]="page() <= 0" (click)="previousPage()">
+          Previous
+        </button>
+        <span class="pager-label">Page {{ page() + 1 }}</span>
+        <button
+          type="button"
+          class="pager-btn"
+          [disabled]="readings().length < pageSize"
+          (click)="nextPage()"
+        >
+          Next
+        </button>
+      </div>
+    }
+  </section>
+
+  <p class="footer-links">
+    <a routerLink="/devices">All devices</a>
+    ·
+    <a routerLink="/tasks">Running tasks</a>
+  </p>
+</div>

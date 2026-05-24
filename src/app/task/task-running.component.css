@@ -71,7 +71,7 @@ h1 {
 .summary-card {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 0.75rem 1.5rem;
   margin-bottom: 1.25rem;
   padding: 0.85rem 1rem;
@@ -99,6 +99,27 @@ h1 {
   font-weight: 700;
   color: #111827;
   line-height: 1;
+}
+
+.summary-stat--heap {
+  min-width: 10rem;
+}
+
+.heap-bar {
+  width: 100%;
+  max-width: 180px;
+  height: 0.45rem;
+  margin-top: 0.15rem;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.heap-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #60a5fa, #2563eb);
 }
 
 .summary-meta {

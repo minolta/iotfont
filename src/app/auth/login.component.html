@@ -1,0 +1,45 @@
+<div class="login-shell">
+  <div class="login-card">
+    <h1>IoT Admin</h1>
+    <p class="hint">Sign in with your account to manage devices and jobs.</p>
+
+    @if (errorMessage(); as msg) {
+      <p class="error-banner" role="alert">{{ msg }}</p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="field" [class.invalid]="form.controls.username.touched && form.controls.username.invalid">
+        <label for="login-username">Username</label>
+        <input
+          id="login-username"
+          type="text"
+          formControlName="username"
+          autocomplete="username"
+          autofocus
+        />
+        @if (form.controls.username.touched && form.controls.username.invalid) {
+          <span class="err">Username is required.</span>
+        }
+      </div>
+
+      <div class="field" [class.invalid]="form.controls.password.touched && form.controls.password.invalid">
+        <label for="login-password">Password</label>
+        <input
+          id="login-password"
+          type="password"
+          formControlName="password"
+          autocomplete="current-password"
+        />
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <span class="err">Password is required.</span>
+        }
+      </div>
+
+      <div class="actions">
+        <button type="submit" [disabled]="submitting()">
+          {{ submitting() ? 'Signing in…' : 'Sign in' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

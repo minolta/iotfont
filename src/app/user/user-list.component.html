@@ -1,0 +1,94 @@
+<div class="list-page">
+  <h1>Users</h1>
+  <p class="hint">Manage admin accounts, permissions, and access.</p>
+
+  @if (createdId(); as cid) {
+    <p class="success-banner">
+      User #{{ cid }} created.
+      <a routerLink="/users">Dismiss</a>
+    </p>
+  }
+  @if (updatedId(); as uid) {
+    <p class="success-banner success-banner--muted">
+      User #{{ uid }} updated.
+      <a routerLink="/users">Dismiss</a>
+    </p>
+  }
+
+  <div class="toolbar">
+    @if (loading()) {
+      <span class="status" aria-live="polite">Loading…</span>
+    }
+    <a routerLink="/users/new" class="add-link">Add user</a>
+  </div>
+
+  @if (error(); as err) {
+    <p class="error" role="alert">{{ err }}</p>
+  }
+  @if (actionError(); as actErr) {
+    <p class="error" role="alert">{{ actErr }}</p>
+  }
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Permission</th>
+          <th>Status</th>
+          <th class="col-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading() && users().length === 0) {
+          <tr>
+            <td class="empty" colspan="5">Loading…</td>
+          </tr>
+        }
+        @for (user of users(); track user.id) {
+          <tr [class.row-disabled]="!user.enabled">
+            <td class="mono">{{ user.id }}</td>
+            <td>
+              {{ displayValue(user.username) }}
+              @if (isSelf(user)) {
+                <span class="badge badge--muted">You</span>
+              }
+            </td>
+            <td>
+              <span class="badge" [class.badge--admin]="user.role === 'ADMIN'">{{ user.role }}</span>
+            </td>
+            <td>
+              @if (user.enabled) {
+                <span class="badge badge--ok">Active</span>
+              } @else {
+                <span class="badge badge--warn">Disabled</span>
+              }
+            </td>
+            <td class="col-actions">
+              <a [routerLink]="['/users', user.id, 'edit']" class="edit-link">Edit</a>
+              <button
+                type="button"
+                class="delete-btn"
+                [disabled]="togglingId() === user.id || isSelf(user)"
+                (click)="toggleEnabled(user)"
+              >
+                @if (togglingId() === user.id) {
+                  {{ user.enabled ? 'Disabling…' : 'Enabling…' }}
+                } @else {
+                  {{ user.enabled ? 'Disable' : 'Enable' }}
+                }
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          @if (!loading()) {
+            <tr>
+              <td class="empty" colspan="5">No users found.</td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

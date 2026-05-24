@@ -1,0 +1,94 @@
+<div class="page page--wide">
+  <a routerLink="/users" class="back">← Back to users</a>
+  <h1>Edit user</h1>
+
+  @if (loading()) {
+    <p class="status">Loading…</p>
+  } @else if (loadError(); as err) {
+    <p class="error-banner" role="alert">{{ err }}</p>
+  } @else if (user(); as u) {
+    <p class="hint">
+      Editing <strong>{{ u.username }}</strong>
+      @if (isSelf()) {
+        — you cannot change your own permission or disable your account here.
+      }
+    </p>
+
+    <section class="edit-section">
+      <h2>Account</h2>
+      @if (saveError(); as msg) {
+        <p class="error-banner" role="alert">{{ msg }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="field" [class.invalid]="form.controls.username.touched && form.controls.username.invalid">
+          <label for="edit-username">Username</label>
+          <input id="edit-username" type="text" formControlName="username" autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label for="edit-role">Permission</label>
+          <select id="edit-role" formControlName="role">
+            @for (role of roles; track role) {
+              <option [value]="role">{{ role }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="field checkbox-field">
+          <input id="edit-enabled" type="checkbox" formControlName="enabled" />
+          <label for="edit-enabled">Account enabled</label>
+        </div>
+
+        <div class="actions">
+          <button type="submit" [disabled]="submitting()">
+            {{ submitting() ? 'Saving…' : 'Save changes' }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="edit-section">
+      <h2>Change password</h2>
+      <p class="field-hint">Set a new password for this user. They do not need to know the current password.</p>
+
+      @if (passwordError(); as msg) {
+        <p class="error-banner" role="alert">{{ msg }}</p>
+      }
+      @if (passwordSuccess(); as msg) {
+        <p class="success-banner" role="status">{{ msg }}</p>
+      }
+
+      <form [formGroup]="passwordForm" (ngSubmit)="resetPassword()">
+        <div
+          class="field"
+          [class.invalid]="passwordForm.controls.newPassword.touched && passwordForm.controls.newPassword.invalid"
+        >
+          <label for="edit-new-password">New password</label>
+          <input id="edit-new-password" type="password" formControlName="newPassword" autocomplete="new-password" />
+        </div>
+
+        <div
+          class="field"
+          [class.invalid]="
+            passwordForm.controls.confirmPassword.touched && passwordForm.controls.confirmPassword.invalid
+          "
+        >
+          <label for="edit-confirm-password">Confirm new password</label>
+          <input
+            id="edit-confirm-password"
+            type="password"
+            formControlName="confirmPassword"
+            autocomplete="new-password"
+          />
+        </div>
+
+        <div class="actions">
+          <button type="submit" [disabled]="resettingPassword()">
+            {{ resettingPassword() ? 'Updating…' : 'Update password' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+</div>

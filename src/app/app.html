@@ -1,64 +1,83 @@
 <div class="app-shell">
-  <header class="app-header">
-    <a routerLink="/devices" class="brand">IoT Admin</a>
-    <nav class="app-nav">
-      <div class="nav-group">
-        <a
-          routerLink="/devices"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: false }"
-          class="nav-group-label"
-          >Devices</a
-        >
-        <div class="nav-group-menu">
+  @if (currentUser(); as user) {
+    <header class="app-header">
+      <a routerLink="/devices" class="brand">IoT Admin</a>
+      <nav class="app-nav">
+        <div class="nav-group">
           <a
             routerLink="/devices"
             routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: true }"
-            >All devices</a
+            [routerLinkActiveOptions]="{ exact: false }"
+            class="nav-group-label"
+            >Devices</a
           >
-          <a routerLink="/devices/new" routerLinkActive="active">Add device</a>
-          <a routerLink="/devices/import" routerLinkActive="active">Import devices</a>
-          <a routerLink="/devices/info" routerLinkActive="active">Live info</a>
+          <div class="nav-group-menu">
+            <a
+              routerLink="/devices"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: true }"
+              >All devices</a
+            >
+            <a routerLink="/devices/new" routerLinkActive="active">Add device</a>
+            <a routerLink="/devices/import" routerLinkActive="active">Import devices</a>
+            <a routerLink="/devices/info" routerLinkActive="active">Live info</a>
+            <a routerLink="/readv" routerLinkActive="active">ReadV</a>
+          </div>
         </div>
-      </div>
-      <div class="nav-group">
-        <a
-          routerLink="/jobs"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: false }"
-          class="nav-group-label"
-          >Jobs</a
-        >
-        <div class="nav-group-menu">
+        <div class="nav-group">
           <a
             routerLink="/jobs"
             routerLinkActive="active"
             [routerLinkActiveOptions]="{ exact: false }"
-            >All jobs</a
+            class="nav-group-label"
+            >Jobs</a
           >
-          <a routerLink="/jobs/new" routerLinkActive="active">Add job</a>
-          <a routerLink="/jobs/import" routerLinkActive="active">Import jobs</a>
-          <a
-            routerLink="/job-types"
-            routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: false }"
-            >All job types</a
-          >
-          <a routerLink="/job-types/new" routerLinkActive="active">Add job type</a>
-          <a
-            routerLink="/job-groups"
-            routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: false }"
-            >All job groups</a
-          >
-          <a routerLink="/job-groups/new" routerLinkActive="active">Add job group</a>
+          <div class="nav-group-menu">
+            <a
+              routerLink="/jobs"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: false }"
+              >All jobs</a
+            >
+            <a routerLink="/jobs/new" routerLinkActive="active">Add job</a>
+            <a routerLink="/jobs/import" routerLinkActive="active">Import jobs</a>
+            <a
+              routerLink="/job-types"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: false }"
+              >All job types</a
+            >
+            <a routerLink="/job-types/new" routerLinkActive="active">Add job type</a>
+            <a
+              routerLink="/job-groups"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: false }"
+              >All job groups</a
+            >
+            <a routerLink="/job-groups/new" routerLinkActive="active">Add job group</a>
+          </div>
+        </div>
+        <a routerLink="/tasks" routerLinkActive="active">Tasks</a>
+      </nav>
+      <div class="header-actions">
+        <div class="api-time" [class.api-time--offline]="apiTimeOffline()">
+          <span class="api-time-label">API time</span>
+          <time class="api-time-value">{{ apiTime() }}</time>
+        </div>
+        <div class="user-menu">
+          <span class="user-name">{{ user.username }}</span>
+          <div class="user-menu-dropdown">
+            @if (user.role === 'ADMIN') {
+              <a routerLink="/users" routerLinkActive="active">Users</a>
+            }
+            <a routerLink="/change-password" routerLinkActive="active">Change password</a>
+            <button type="button" class="logout-btn" (click)="logout()">Sign out</button>
+          </div>
         </div>
       </div>
-      <a routerLink="/tasks" routerLinkActive="active">Tasks</a>
-    </nav>
-  </header>
-  <main class="app-main">
+    </header>
+  }
+  <main class="app-main" [class.app-main--full]="!currentUser()">
     <router-outlet />
   </main>
 </div>

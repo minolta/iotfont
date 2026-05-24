@@ -1,0 +1,65 @@
+<div class="page">
+  <a routerLink="/users" class="back">← Back to users</a>
+  <h1>Add user</h1>
+  <p class="hint">Create a new account with username, password, and permission level.</p>
+
+  @if (errorMessage(); as msg) {
+    <p class="error-banner" role="alert">{{ msg }}</p>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field" [class.invalid]="form.controls.username.touched && form.controls.username.invalid">
+      <label for="user-username">Username</label>
+      <input id="user-username" type="text" formControlName="username" autocomplete="off" />
+      @if (form.controls.username.touched && form.controls.username.hasError('required')) {
+        <span class="err">Username is required.</span>
+      }
+      @if (form.controls.username.touched && form.controls.username.hasError('minlength')) {
+        <span class="err">Username must be at least 2 characters.</span>
+      }
+    </div>
+
+    <div class="field" [class.invalid]="form.controls.password.touched && form.controls.password.invalid">
+      <label for="user-password">Password</label>
+      <input id="user-password" type="password" formControlName="password" autocomplete="new-password" />
+      @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+        <span class="err">Password is required.</span>
+      }
+      @if (form.controls.password.touched && form.controls.password.hasError('minlength')) {
+        <span class="err">Password must be at least 5 characters.</span>
+      }
+    </div>
+
+    <div
+      class="field"
+      [class.invalid]="form.controls.confirmPassword.touched && form.controls.confirmPassword.invalid"
+    >
+      <label for="user-confirm-password">Confirm password</label>
+      <input
+        id="user-confirm-password"
+        type="password"
+        formControlName="confirmPassword"
+        autocomplete="new-password"
+      />
+      @if (form.controls.confirmPassword.touched && form.controls.confirmPassword.invalid) {
+        <span class="err">Please confirm the password.</span>
+      }
+    </div>
+
+    <div class="field">
+      <label for="user-role">Permission</label>
+      <select id="user-role" formControlName="role">
+        @for (role of roles; track role) {
+          <option [value]="role">{{ role }}</option>
+        }
+      </select>
+      <p class="field-hint">ADMIN can manage users. USER can access devices and jobs only.</p>
+    </div>
+
+    <div class="actions">
+      <button type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Saving…' : 'Create user' }}
+      </button>
+    </div>
+  </form>
+</div>

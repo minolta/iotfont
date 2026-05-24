@@ -11,10 +11,18 @@ export interface RunningTask {
   startedAt: string | null;
 }
 
+/** Matches `me.pixka.iot.o.HeapMemoryInfo`. */
+export interface HeapMemoryInfo {
+  usedBytes: number;
+  maxBytes: number;
+  committedBytes: number;
+}
+
 /** Matches `me.pixka.iot.o.RunningTasksResponse`. */
 export interface RunningTasksResponse {
   activeCount: number;
   bufferSize: number;
+  heapMemory: HeapMemoryInfo;
   tasks: RunningTask[];
 }
 

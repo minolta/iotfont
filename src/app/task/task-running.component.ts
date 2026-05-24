@@ -17,7 +17,7 @@ import {
 } from 'rxjs';
 
 import { displayValue, formatDateTime, formatHttpError } from '../shared/format.util';
-import type { RunningTask } from './task.model';
+import type { HeapMemoryInfo, RunningTask } from './task.model';
 import { TaskService } from './task.service';
 
 @Component({
@@ -35,6 +35,7 @@ export class TaskRunningComponent {
   readonly error = signal<string | null>(null);
   readonly activeCount = signal(0);
   readonly bufferSize = signal(0);
+  readonly heapMemory = signal<HeapMemoryInfo | null>(null);
   readonly tasks = signal<RunningTask[]>([]);
   readonly autoRefreshEnabled = signal(true);
   readonly refreshNonce = signal(0);
@@ -61,6 +62,7 @@ export class TaskRunningComponent {
         }
         this.activeCount.set(response.activeCount);
         this.bufferSize.set(response.bufferSize);
+        this.heapMemory.set(response.heapMemory);
         this.tasks.set(response.tasks);
       });
   }
@@ -80,6 +82,44 @@ export class TaskRunningComponent {
 
   deviceLabel(task: RunningTask): string {
     return task.deviceName?.trim() || (task.deviceId != null ? `#${task.deviceId}` : '—');
+  }
+
+  heapUsedLabel(): string {
+    const heap = this.heapMemory();
+    if (!heap) {
+      return '—';
+    }
+    return this.formatBytes(heap.usedBytes);
+  }
+
+  heapMaxLabel(): string {
+    const heap = this.heapMemory();
+    if (!heap) {
+      return '—';
+    }
+    return this.formatBytes(heap.maxBytes);
+  }
+
+  heapUsagePercent(): number | null {
+    const heap = this.heapMemory();
+    if (!heap || heap.maxBytes <= 0) {
+      return null;
+    }
+    return Math.min(100, Math.round((heap.usedBytes / heap.maxBytes) * 100));
+  }
+
+  private formatBytes(bytes: number): string {
+    if (!Number.isFinite(bytes) || bytes < 0) {
+      return '—';
+    }
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let value = bytes;
+    let unit = 0;
+    while (value >= 1024 && unit < units.length - 1) {
+      value /= 1024;
+      unit++;
+    }
+    return `${value.toFixed(unit === 0 ? 0 : 1)} ${units[unit]}`;
   }
 
   killTask(task: RunningTask): void {
@@ -111,6 +151,7 @@ export class TaskRunningComponent {
         this.error.set('Could not load running tasks. Is the backend running with Task API?');
         this.activeCount.set(0);
         this.bufferSize.set(0);
+        this.heapMemory.set(null);
         this.tasks.set([]);
         return of(null);
       }),

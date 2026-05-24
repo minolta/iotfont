@@ -439,3 +439,27 @@ td.empty {
   background: #f3f4f6;
   color: #6b7280;
 }
+
+.badge--admin {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badge--ok {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge--warn {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge--muted {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.row-disabled td {
+  color: #6b7280;
+}
