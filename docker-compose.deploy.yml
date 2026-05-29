@@ -1,0 +1,36 @@
+# Run on server after: docker load -i api.tar && docker load -i font.tar
+services:
+  iot-api:
+    image: iot-api:latest
+    container_name: iot-api
+    ports:
+      - "888:8080"
+    volumes:
+      - /home/ky/iot/db:/app/data
+      - iot-logs:/app/logs
+    environment:
+      IOT_SEED_TEST_DATA: "true"
+      IOT_SECURITY_SEED_ADMIN: "true"
+      IOT_SECURITY_ADMIN_USERNAME: admin
+      IOT_SECURITY_ADMIN_PASSWORD: admin
+      IOT_CORS_ALLOWED_ORIGIN_PATTERNS: "http://localhost:*,http://127.0.0.1:*,http://192.168.*:*"
+    restart: unless-stopped
+    networks:
+      - iot-net
+
+  iot-font:
+    image: iot-font:latest
+    container_name: iot-font
+    ports:
+      - "8080:80"
+    depends_on:
+      - iot-api
+    restart: unless-stopped
+    networks:
+      - iot-net
+
+networks:
+  iot-net:
+
+volumes:
+  iot-logs:

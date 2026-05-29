@@ -1,59 +1,263 @@
-# Iotfont
+# IoT Admin — User Manual
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.10.
+Web UI for the IoT backend. Deploy with Docker: **iot-api** (Spring Boot) and **iot-font** (Angular + nginx).
 
-## Development server
+## Architecture
 
-To start a local development server, run:
+```
+Browser  →  http://SERVER:8080  (iot-font / nginx)
+                └─ /rest/*  →  iot-api:8080  (Docker network iot-net)
+
+Direct API  →  http://SERVER:888
+```
+
+| Service   | Image            | Host port | Container port |
+|-----------|------------------|-----------|------------------|
+| UI        | `iot-font:latest`| 8080      | 80               |
+| API       | `iot-api:latest` | 888       | 8080             |
+
+Database files are stored on the server at `/home/ky/iot/db` (H2).
+
+---
+
+## Prerequisites
+
+**Development PC (Windows)**
+
+- Docker Desktop
+- OpenSSH client (`ssh`, `scp`) with key login to the server
+- Node.js (only for local `ng serve`)
+
+**Server (Linux)**
+
+- Docker
+- SSH access
+- Ports **8080** (UI) and **888** (API) open
+
+---
+
+## Server settings
+
+Edit these in `makedocker.bat` and `run.bat` (or use `makedocker.local.bat`, gitignored):
+
+| Variable         | Default              | Description        |
+|------------------|----------------------|--------------------|
+| `IOT_SSH_USER`   | `ky`                 | SSH username       |
+| `IOT_SERVER`     | `192.168.88.5`       | Server IP          |
+| `IOT_REMOTE_DIR` | `/home/ky/iot`       | Deploy folder      |
+
+Example local override — copy `makedocker.local.bat.example` to `makedocker.local.bat`:
+
+```bat
+set "IOT_SSH_USER=ky"
+set "IOT_SERVER=192.168.88.5"
+set "IOT_REMOTE_DIR=/home/ky/iot"
+```
+
+Set up SSH keys once (no password prompt):
 
 ```bash
+ssh-copy-id ky@192.168.88.5
+```
+
+---
+
+## Deploy from Windows
+
+### 1. Build images and upload
+
+```bat
+makedocker.bat
+```
+
+This will:
+
+1. Build `iot-api:latest` from `../../api/iot`
+2. Build `iot-font:latest` from this project
+3. Save `api.tar` and `font.tar`
+4. Copy to the server: `api.tar`, `font.tar`, `run.sh`
+
+### 2. Start on server
+
+**Option A — on the server:**
+
+```bash
+cd /home/ky/iot
+chmod +x run.sh
+./run.sh
+```
+
+**Option B — from Windows (SSH):**
+
+```bat
+run.bat
+```
+
+**Full deploy (build + upload + start):**
+
+```bat
+deploy-to-server.bat
+```
+
+### 3. Restart without reloading images
+
+On server:
+
+```bash
+./run.sh run
+```
+
+From Windows:
+
+```bat
+run.bat run
+```
+
+---
+
+## Access the application
+
+| What        | URL |
+|-------------|-----|
+| **Web UI**  | http://192.168.88.5:8080 |
+| **Login**   | http://192.168.88.5:8080/login |
+| **API**     | http://192.168.88.5:888 |
+
+**Default login:** `admin` / `admin`
+
+The UI calls the API via same-origin `/rest/...` (nginx proxies to `iot-api`). You normally only open port **8080** in the browser.
+
+---
+
+## Files on the server
+
+After deploy, `/home/ky/iot/` contains:
+
+| File        | Purpose |
+|-------------|---------|
+| `api.tar`   | API Docker image |
+| `font.tar`  | UI Docker image |
+| `run.sh`    | Load images and start containers |
+| `db/`       | H2 database (created at runtime) |
+| `logs/`     | API log files |
+
+---
+
+## What `run.sh` does
+
+Uses **`docker run`** (not Docker Compose):
+
+1. Load `api.tar` and `font.tar` (unless `./run.sh run`)
+2. Create Docker network `iot-net`
+3. Start **iot-api** (wait until API responds on port 888)
+4. Start **iot-font** (nginx proxies `/rest/` to API)
+5. Verify connectivity inside the network
+
+---
+
+## Local development
+
+**UI only:**
+
+```bash
+npm install
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Open http://localhost:4200 — API requests are proxied to port 888 via `proxy.conf.json`.
 
-## Code scaffolding
+**API:** run the Spring app or start only the API container on port 888.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+**Run both images locally (Git Bash):**
 
-```bash
-ng generate component component-name
+```bat
+run.bat local
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+UI: http://localhost:8080 · API: http://localhost:888
+
+---
+
+## Troubleshooting
+
+### 502 Bad Gateway on login or `/rest/...`
+
+nginx cannot reach the API.
 
 ```bash
-ng generate --help
+docker ps
+docker logs iot-api --tail 50
+curl http://127.0.0.1:888/rest/iot/time/now
+curl http://127.0.0.1:8080/rest/iot/time/now
 ```
 
-## Building
+- If **888 works** but **8080 fails** → rebuild and redeploy **iot-font** (`makedocker.bat`, then `./run.sh`).
+- If **888 fails** → API is not running (see DB permissions below).
 
-To build the project run:
+### Invalid username or password
+
+Default is `admin` / `admin`. After redeploy, the API re-syncs the admin password from environment variables.
+
+Reset database if needed:
 
 ```bash
-ng build
+cd /home/ky/iot
+docker rm -f iot-api iot-font
+sudo rm -f db/iot.mv.db db/iot.trace.db
+./run.sh run
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+### Database / permission errors
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+API runs as UID **1001** inside the container:
 
 ```bash
-ng test
+sudo mkdir -p /home/ky/iot/db /home/ky/iot/logs
+sudo chown -R 1001:1001 /home/ky/iot/db /home/ky/iot/logs
+./run.sh run
 ```
 
-## Running end-to-end tests
+### `run.sh` line ending errors
 
-For end-to-end (e2e) testing, run:
+If you see `bash\r: No such file or directory`:
 
 ```bash
-ng e2e
+sed -i 's/\r$//' run.sh
+chmod +x run.sh
+./run.sh
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+(`copy-to-server.bat` normalizes line endings before upload.)
 
-## Additional Resources
+---
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Script reference
+
+| Script | Where | Purpose |
+|--------|-------|---------|
+| `makedocker.bat` | Windows | Build images, save tar, upload to server |
+| `copy-to-server.bat` | Windows | Upload only (called by makedocker) |
+| `run.bat` | Windows | SSH to server and run `run.sh` |
+| `deploy-to-server.bat` | Windows | `makedocker.bat` + `run.bat` |
+| `run.sh` | Server | Load images and `docker run` both containers |
+
+---
+
+## Building from source (without Docker)
+
+```bash
+# UI
+npm ci
+npm run build
+# output: dist/iotfont/browser
+
+# API — see ../../api/iot
+```
+
+Production images bundle the UI build into nginx and the API into a JRE container; use `makedocker.bat` for server deployment.
+
+---
+
+## User guides
+
+- [Add Job — User Manual](docs/add-job-manual.md) — step-by-step guide to create jobs, GPIO ports, sensors, and schedules

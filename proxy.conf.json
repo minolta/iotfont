@@ -1,0 +1,7 @@
+{
+  "/rest": {
+    "target": "http://localhost:888",
+    "secure": false,
+    "changeOrigin": true
+  }
+}

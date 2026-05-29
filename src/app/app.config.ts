@@ -11,6 +11,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([authInterceptor])),
     provideRouter(routes),
-    { provide: IOT_API_BASE_URL, useValue: 'http://localhost:8080' },
+    // Same-origin /rest — proxied by nginx (Docker) or proxy.conf.json (ng serve).
+    { provide: IOT_API_BASE_URL, useValue: '' },
   ],
 };

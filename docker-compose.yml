@@ -1,0 +1,32 @@
+services:
+  iot-api:
+    image: iot-api:latest
+    build:
+      context: ../../api/iot
+      dockerfile: Dockerfile
+    container_name: iot-api
+    ports:
+      - "888:8080"
+    volumes:
+      - iot-data:/app/data
+      - iot-logs:/app/logs
+    environment:
+      IOT_SEED_TEST_DATA: "true"
+      IOT_SECURITY_SEED_ADMIN: "true"
+    restart: unless-stopped
+
+  iot-font:
+    image: iot-font:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: iot-font
+    ports:
+      - "8080:80"
+    depends_on:
+      - iot-api
+    restart: unless-stopped
+
+volumes:
+  iot-data:
+  iot-logs:
