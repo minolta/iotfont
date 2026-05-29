@@ -34,6 +34,9 @@
           rows="3"
           [readonly]="submitting()"
         ></textarea>
+        @if (descriptionSyntaxHint(); as hint) {
+          <span class="field-hint">{{ hint }}</span>
+        }
       </div>
 
       <div class="field" [class.invalid]="form.controls.deviceId.invalid && form.controls.deviceId.touched">
@@ -57,6 +60,14 @@
           }
         </select>
       </div>
+
+      @if (selectedJobTypeGuide(); as guide) {
+        <app-job-type-guide-panel
+          [guide]="guide"
+          [jobTypeName]="selectedJobTypeName()"
+          headingId="job-edit-type-guide-heading"
+        />
+      }
 
       <div class="field">
         <label for="job-edit-group">Job group</label>
@@ -111,10 +122,11 @@
         <span class="field-hint">Optional. e.g. 17:00</span>
       </div>
 
+      @if (showHumidityRange()) {
       <section class="humidity-range-section" aria-labelledby="job-edit-humidity-range-heading">
         <h2 id="job-edit-humidity-range-heading">Humidity range</h2>
         <p class="field-hint">
-          For humidity job types. GPIO ports run only when sensor humidity is within this range.
+          GPIO ports run only when sensor humidity is within this range. Leave blank for any value.
         </p>
         <div class="field-row">
           <div class="field">
@@ -145,11 +157,13 @@
           </div>
         </div>
       </section>
+      }
 
+      @if (showTemperatureRange()) {
       <section class="humidity-range-section" aria-labelledby="job-edit-temperature-range-heading">
         <h2 id="job-edit-temperature-range-heading">Temperature range</h2>
         <p class="field-hint">
-          For temperature job types. GPIO ports run only when sensor temperature is within this range.
+          GPIO ports run only when sensor temperature is within this range. Leave blank for any value.
         </p>
         <div class="field-row">
           <div class="field">
@@ -176,6 +190,7 @@
           </div>
         </div>
       </section>
+      }
 
       <app-job-ports-section
         [devices]="devices()"

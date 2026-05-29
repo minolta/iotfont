@@ -126,6 +126,72 @@ select:focus {
   color: #1e40af;
 }
 
+.job-type-guide-section {
+  padding: 0.85rem 1rem;
+  border: 1px solid #d1fae5;
+  border-left: 3px solid #059669;
+  border-radius: 8px;
+  background: #f0fdf4;
+}
+
+.job-type-guide-section h2 {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111;
+}
+
+.job-type-guide-summary {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: #065f46;
+}
+
+.job-type-guide-details {
+  margin: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.job-type-guide-details dt {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.15rem;
+}
+
+.job-type-guide-details dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #4b5563;
+}
+
+.job-type-guide-details ul {
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.job-type-guide-details li + li {
+  margin-top: 0.15rem;
+}
+
+.job-type-guide-section code,
+.job-type-guide-examples code {
+  font-size: 0.85em;
+  padding: 0.05rem 0.25rem;
+  border-radius: 4px;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.job-type-guide-examples {
+  margin: 0.45rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
 .checkbox-field {
   flex-direction: row;
   align-items: center;

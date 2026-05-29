@@ -164,9 +164,16 @@ npm install
 ng serve
 ```
 
-Open http://localhost:4200 — API requests are proxied to port 888 via `proxy.conf.json`.
+Open http://localhost:4200 — API requests are proxied via `proxy.conf.json`.
 
-**API:** run the Spring app or start only the API container on port 888.
+**API (pick one):**
+
+| How you run the API | Proxy target in `proxy.conf.json` |
+|---------------------|-----------------------------------|
+| Spring Boot locally (`server.port=8080`) | `http://localhost:8080` |
+| Docker API only (`iot-api` on host port 888) | `http://localhost:888` |
+
+Restart `ng serve` after changing the proxy file.
 
 **Run both images locally (Git Bash):**
 

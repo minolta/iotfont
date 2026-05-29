@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { catchError, finalize, of } from 'rxjs';
+import { catchError, finalize, of, startWith } from 'rxjs';
 
 import { DeviceService } from '../device/device.service';
 import { JobGroupService } from '../job-group/job-group.service';
@@ -12,12 +12,25 @@ import { createPortFormGroup, readPortFormValues } from './job-port.form';
 import { JobPortsSectionComponent } from './job-ports-section.component';
 import { createSensorFormGroup, readSensorFormValues } from './job-sensor.form';
 import { JobSensorsSectionComponent } from './job-sensors-section.component';
+import {
+  getJobTypeGuide,
+  jobTypeUsesDescriptionSyntax,
+  jobTypeUsesHumidityRange,
+  jobTypeUsesTemperatureRange,
+} from './job-type-guide';
+import { JobTypeGuidePanelComponent } from './job-type-guide-panel.component';
 import { JobService } from './job.service';
 
 @Component({
   selector: 'app-job-add-new',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, JobPortsSectionComponent, JobSensorsSectionComponent],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    JobPortsSectionComponent,
+    JobSensorsSectionComponent,
+    JobTypeGuidePanelComponent,
+  ],
   templateUrl: './job-add-new.component.html',
   styleUrl: '../shared/crud-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -69,6 +82,42 @@ export class JobAddNewComponent {
     priority: ['0'],
     ports: this.fb.array([]),
     sensors: this.fb.array([]),
+  });
+
+  private readonly selectedJobTypeId = toSignal(
+    this.form.controls.jobtypeId.valueChanges.pipe(startWith(this.form.controls.jobtypeId.value)),
+    { initialValue: this.form.controls.jobtypeId.value },
+  );
+
+  readonly selectedJobType = computed(() => {
+    const id = Number(this.selectedJobTypeId());
+    if (!Number.isFinite(id) || id <= 0) {
+      return null;
+    }
+    return this.jobTypes().find((jobType) => jobType.id === id) ?? null;
+  });
+
+  readonly selectedJobTypeGuide = computed(() => {
+    const jobType = this.selectedJobType();
+    return jobType ? getJobTypeGuide(jobType.name) : null;
+  });
+
+  readonly selectedJobTypeName = computed(() => {
+    const jobType = this.selectedJobType();
+    return jobType?.name?.trim() || (jobType ? `#${jobType.id}` : '');
+  });
+
+  readonly showHumidityRange = computed(() => jobTypeUsesHumidityRange(this.selectedJobType()?.name));
+
+  readonly showTemperatureRange = computed(() => jobTypeUsesTemperatureRange(this.selectedJobType()?.name));
+
+  readonly descriptionSyntaxHint = computed(() => {
+    const jobType = this.selectedJobType();
+    if (!jobType || !jobTypeUsesDescriptionSyntax(jobType.name)) {
+      return null;
+    }
+    const examples = getJobTypeGuide(jobType.name).descriptionExamples;
+    return examples?.length ? `ตัวอย่าง Description: ${examples.join(' · ')}` : null;
   });
 
   get portsFormArray(): FormArray {

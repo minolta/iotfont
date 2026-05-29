@@ -19,6 +19,9 @@
     <div class="field">
       <label for="job-description">Description</label>
       <textarea id="job-description" formControlName="description" rows="3"></textarea>
+      @if (descriptionSyntaxHint(); as hint) {
+        <span class="field-hint">{{ hint }}</span>
+      }
     </div>
 
     <div class="field" [class.invalid]="form.controls.deviceId.invalid && form.controls.deviceId.touched">
@@ -48,6 +51,14 @@
         <span class="err">Job type is required.</span>
       }
     </div>
+
+    @if (selectedJobTypeGuide(); as guide) {
+      <app-job-type-guide-panel
+        [guide]="guide"
+        [jobTypeName]="selectedJobTypeName()"
+        headingId="job-add-type-guide-heading"
+      />
+    }
 
     <div class="field">
       <label for="job-group">Job group</label>
@@ -102,10 +113,10 @@
       <span class="field-hint">Optional. e.g. 17:00 — runs only before this time each day.</span>
     </div>
 
+    @if (showHumidityRange()) {
     <section class="humidity-range-section" aria-labelledby="job-humidity-range-heading">
       <h2 id="job-humidity-range-heading">Humidity range</h2>
       <p class="field-hint">
-        For humidity job types (<code>humidity</code>, <code>runhbyd1</code>, <code>readhumidity</code>).
         GPIO ports run only when a sensor reading is within this range. Leave blank for any value.
       </p>
       <div class="field-row">
@@ -119,11 +130,12 @@
         </div>
       </div>
     </section>
+    }
 
+    @if (showTemperatureRange()) {
     <section class="humidity-range-section" aria-labelledby="job-temperature-range-heading">
       <h2 id="job-temperature-range-heading">Temperature range</h2>
       <p class="field-hint">
-        For temperature job types (<code>readht</code>, <code>ReadH/T</code>).
         GPIO ports run only when a sensor reading is within this range. Leave blank for any value.
       </p>
       <div class="field-row">
@@ -137,6 +149,7 @@
         </div>
       </div>
     </section>
+    }
 
     <app-job-ports-section
       [devices]="devices()"
