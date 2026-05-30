@@ -1,0 +1,343 @@
+.job-logs-page .page-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.job-logs-page .page-header-row .hint {
+  margin-bottom: 0;
+}
+
+.job-logs-page .refresh-btn {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.job-logs-page .refresh-btn:hover:not(:disabled) {
+  background: #dbeafe;
+}
+
+.job-logs-page .refresh-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.job-logs-page .toolbar {
+  padding: 0.85rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.job-logs-page .filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem 1rem;
+  margin: 0 0 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.job-logs-page .date-field input {
+  font: inherit;
+  min-width: 13.5rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #c8c8c8;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.job-logs-page .filter-btn,
+.job-logs-page .clear-btn {
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.45rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.job-logs-page .filter-btn {
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.job-logs-page .filter-btn:hover:not(:disabled) {
+  background: #dbeafe;
+}
+
+.job-logs-page .clear-btn {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+}
+
+.job-logs-page .delete-range-btn {
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.45rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+  cursor: pointer;
+}
+
+.job-logs-page .delete-range-btn:hover:not(:disabled) {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.job-logs-page .delete-range-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.job-logs-page .dismiss-btn {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.job-logs-page .filter-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.job-logs-page .selected-job {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.65rem;
+  margin: 0 0 0.85rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #dbeafe;
+  border-left: 3px solid #2563eb;
+  border-radius: 8px;
+  background: #f8fbff;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.job-logs-page .selected-job-tag {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.job-logs-page .log-stats-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  margin: 0 0 0.85rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.job-logs-page .log-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.job-logs-page .log-stat-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.job-logs-page .log-stat strong {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+.job-logs-page .log-stat-muted {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.job-logs-page .logs-table-wrap {
+  border-color: #dbeafe;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+
+.job-logs-page .logs-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.job-logs-page .logs-table .time-cell {
+  width: 11rem;
+  white-space: nowrap;
+  color: #475569;
+}
+
+.job-logs-page .logs-table .level-cell {
+  width: 6.5rem;
+}
+
+.job-logs-page .logs-table .message-cell {
+  min-width: 12rem;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.job-logs-page .logs-table .state-cell {
+  min-width: 10rem;
+  max-width: 22rem;
+  color: #64748b;
+  word-break: break-word;
+}
+
+.job-logs-page .log-row {
+  transition: background-color 0.12s ease;
+}
+
+.job-logs-page .log-row:hover {
+  background: #f8fafc;
+}
+
+.job-logs-page .log-row--error {
+  background: #fef2f2;
+}
+
+.job-logs-page .log-row--error:hover {
+  background: #fee2e2;
+}
+
+.job-logs-page .log-row--complete {
+  background: #f0fdf4;
+}
+
+.job-logs-page .log-row--complete:hover {
+  background: #dcfce7;
+}
+
+.job-logs-page .log-row--start {
+  background: #eff6ff;
+}
+
+.job-logs-page .log-row--run {
+  background: #fffbeb;
+}
+
+.job-logs-page .log-level {
+  display: inline-block;
+  min-width: 4.75rem;
+  text-align: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.job-logs-page .log-level--start {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.job-logs-page .log-level--run {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.job-logs-page .log-level--error {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+.job-logs-page .log-level--complete {
+  background: #bbf7d0;
+  color: #047857;
+}
+
+.job-logs-page .pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+  padding-top: 0.25rem;
+}
+
+.job-logs-page .pager span {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.job-logs-page .pager button {
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: #111827;
+  cursor: pointer;
+}
+
+.job-logs-page .pager button:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.job-logs-page .pager button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 720px) {
+  .job-logs-page .toolbar,
+  .job-logs-page .filter-bar {
+    padding: 0.75rem;
+  }
+
+  .job-logs-page .search-field,
+  .job-logs-page .filter-field,
+  .job-logs-page .date-field input {
+    min-width: 100%;
+  }
+
+  .job-logs-page .logs-table .time-cell {
+    white-space: normal;
+  }
+}

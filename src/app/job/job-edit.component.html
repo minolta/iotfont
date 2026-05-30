@@ -85,6 +85,18 @@
         <label for="job-edit-enable">Enabled</label>
       </div>
 
+      <div class="field checkbox-field">
+        <input id="job-edit-enable-logs" type="checkbox" formControlName="enableLogs" [disabled]="submitting()" />
+        <label for="job-edit-enable-logs">Enable logs</label>
+        <span class="field-hint">Save START / RUN / ERROR / COMPLETE events when this job runs.</span>
+      </div>
+
+      @if (jobId(); as id) {
+        <p class="field-hint">
+          <a [routerLink]="['/job-logs']" [queryParams]="{ jobId: id }">View logs for this job</a>
+        </p>
+      }
+
       <div class="field">
         <label for="job-edit-priority">Priority</label>
         <input id="job-edit-priority" type="number" formControlName="priority" step="1" [readonly]="submitting()" />

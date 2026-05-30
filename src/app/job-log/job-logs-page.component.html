@@ -1,0 +1,173 @@
+<div class="list-page job-logs-page">
+  <div class="page-header-row">
+    <div>
+      <h1>Job logs</h1>
+      <p class="hint">Run history for jobs with logging enabled (START, RUN, ERROR, COMPLETE).</p>
+    </div>
+    <button type="button" class="refresh-btn" [disabled]="loading()" (click)="refresh()">
+      {{ loading() ? 'Refreshing…' : 'Refresh' }}
+    </button>
+  </div>
+
+  @if (error(); as err) {
+    <p class="error-banner" role="alert">{{ err }}</p>
+  }
+
+  @if (deleteMessage(); as msg) {
+    <p class="success-banner">
+      {{ msg }}
+      <button type="button" class="dismiss-btn" (click)="dismissDeleteMessage()">Dismiss</button>
+    </p>
+  }
+
+  <div class="toolbar">
+    <div class="filter-field">
+      <label class="label-text" for="job-log-job">Job</label>
+      <select id="job-log-job" [value]="jobFilter()" (change)="onJobChange($any($event.target).value)">
+        <option value="">Select job…</option>
+        @for (job of jobs(); track job.id) {
+          <option [value]="job.id">
+            #{{ job.id }} — {{ job.name?.trim() || 'Job' }}
+            @if (job.enable_logs) { (logs on) }
+          </option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-field">
+      <label class="label-text" for="job-log-level">Level</label>
+      <select id="job-log-level" [value]="levelFilter()" (change)="onLevelChange($any($event.target).value)">
+        <option value="">All levels</option>
+        @for (level of levelOptions; track level) {
+          <option [value]="level">{{ level }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="search-field">
+      <label class="label-text" for="job-log-search">Search</label>
+      <input
+        id="job-log-search"
+        type="search"
+        autocomplete="off"
+        placeholder="Message, state, level…"
+        [value]="searchTerm()"
+        [disabled]="!jobFilter() || useDateFilter()"
+        (input)="onSearchInput($any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="date-field">
+      <label class="label-text" for="job-log-start">From</label>
+      <input
+        id="job-log-start"
+        type="datetime-local"
+        [value]="startDate()"
+        [disabled]="!jobFilter()"
+        (input)="startDate.set($any($event.target).value)"
+      />
+    </div>
+    <div class="date-field">
+      <label class="label-text" for="job-log-end">To</label>
+      <input
+        id="job-log-end"
+        type="datetime-local"
+        [value]="endDate()"
+        [disabled]="!jobFilter()"
+        (input)="endDate.set($any($event.target).value)"
+      />
+    </div>
+    <button type="button" class="filter-btn" [disabled]="!jobFilter()" (click)="applyDateFilter()">Apply range</button>
+    <button
+      type="button"
+      class="delete-range-btn"
+      [disabled]="!canDeleteInRange()"
+      (click)="deleteLogsInRange()"
+    >
+      {{ deleting() ? 'Deleting…' : 'Delete in range' }}
+    </button>
+    @if (useDateFilter()) {
+      <button type="button" class="clear-btn" (click)="clearDateFilter()">Clear range</button>
+    }
+  </div>
+
+  <p class="selected-job">
+    Showing logs for <strong>{{ selectedJobLabel() }}</strong>
+    @if (useDateFilter()) {
+      <span class="selected-job-tag">Date range</span>
+    }
+    @if (levelFilter()) {
+      <span class="selected-job-tag">{{ levelFilter() }}</span>
+    }
+  </p>
+
+  @if (jobFilter()) {
+    <div class="log-stats-bar" aria-live="polite">
+      @if (logStats(); as stats) {
+        <span class="log-stat">
+          <span class="log-stat-label">Total</span>
+          <strong>{{ formatCount(stats.total) }}</strong>
+        </span>
+        <span class="log-stat">
+          <span class="log-stat-label">Matching</span>
+          <strong>{{ formatCount(stats.matching) }}</strong>
+        </span>
+        <span class="log-stat">
+          <span class="log-stat-label">Showing</span>
+          <strong>{{ showingCountLabel() }}</strong>
+        </span>
+      } @else if (loading()) {
+        <span class="log-stat-muted">Loading log counts…</span>
+      }
+    </div>
+  }
+
+  <div class="table-wrap logs-table-wrap">
+    <table class="logs-table">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Level</th>
+          <th>Message</th>
+          <th>State</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading() && logs().length === 0) {
+          <tr>
+            <td class="empty" colspan="4">Loading…</td>
+          </tr>
+        } @else if (!jobFilter()) {
+          <tr>
+            <td class="empty" colspan="4">Select a job to view logs.</td>
+          </tr>
+        } @else if (logs().length === 0) {
+          <tr>
+            <td class="empty" colspan="4">No logs found. Enable logging on the job and wait for it to run.</td>
+          </tr>
+        } @else {
+          @for (log of logs(); track log.id) {
+            <tr [class]="rowClass(log.level)">
+              <td class="mono time-cell">{{ formatDate(log.logtime) }}</td>
+              <td class="level-cell">
+                <span class="log-level" [class]="levelClass(log.level)">{{ log.level || '—' }}</span>
+              </td>
+              <td class="message-cell">{{ log.message || '—' }}</td>
+              <td class="mono state-cell">{{ log.state || '—' }}</td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (jobFilter() && !useDateFilter()) {
+    <div class="pager">
+      <button type="button" [disabled]="page() === 0 || loading()" (click)="previousPage()">Previous</button>
+      <span>Page {{ page() + 1 }}</span>
+      <button type="button" [disabled]="logs().length < pageSize || loading()" (click)="nextPage()">Next</button>
+    </div>
+  }
+</div>

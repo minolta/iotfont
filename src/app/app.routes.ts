@@ -80,6 +80,11 @@ export const routes: Routes = [
           import('./job-type/job-type-list.component').then((m) => m.JobTypeListComponent),
       },
       {
+        path: 'job-logs',
+        loadComponent: () =>
+          import('./job-log/job-logs-page.component').then((m) => m.JobLogsPageComponent),
+      },
+      {
         path: 'jobs/new',
         loadComponent: () => import('./job/job-add-new.component').then((m) => m.JobAddNewComponent),
       },

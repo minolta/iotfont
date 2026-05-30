@@ -16,6 +16,8 @@ export interface Job {
   jobgroup_id: number | null;
   jobgroup?: JobGroup | null;
   enable: boolean | null;
+  /** When true, job run events are saved to iot_job_log */
+  enable_logs: boolean | null;
   runtime: number | null;
   waittime: number | null;
   sdate: string | null;
@@ -42,6 +44,7 @@ export interface JobFormValue {
   jobtypeId: number | null;
   jobGroupId: number | null;
   enable: boolean;
+  enableLogs: boolean;
   runtime: string | number | null;
   waittime: string | number | null;
   sdate: string;

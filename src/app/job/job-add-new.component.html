@@ -76,6 +76,12 @@
       <label for="job-enable">Enabled</label>
     </div>
 
+    <div class="field checkbox-field">
+      <input id="job-enable-logs" type="checkbox" formControlName="enableLogs" />
+      <label for="job-enable-logs">Enable logs</label>
+      <span class="field-hint">When enabled, START / RUN / ERROR / COMPLETE events are saved to the database.</span>
+    </div>
+
     <div class="field">
       <label for="job-priority">Priority</label>
       <input id="job-priority" type="number" formControlName="priority" step="1" />

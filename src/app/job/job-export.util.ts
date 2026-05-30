@@ -10,6 +10,7 @@ export interface JobExportRecord {
   jobtype_id: number | null;
   jobgroup_id: number | null;
   enable: boolean;
+  enable_logs: boolean;
   runtime: number | null;
   waittime: number | null;
   sdate: string | null;
@@ -35,6 +36,7 @@ export function jobToExportRecord(job: Job): JobExportRecord {
     jobtype_id: job.jobtype_id ?? job.jobtype?.id ?? null,
     jobgroup_id: job.jobgroup_id ?? job.jobgroup?.id ?? null,
     enable: job.enable ?? true,
+    enable_logs: job.enable_logs ?? false,
     runtime: job.runtime,
     waittime: job.waittime,
     sdate: job.sdate,

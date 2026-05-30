@@ -13,6 +13,7 @@ export function jobToFormValue(job: Job, overrides: Partial<JobFormValue> = {}):
     jobtypeId: job.jobtype_id ?? job.jobtype?.id ?? null,
     jobGroupId: job.jobgroup_id ?? job.jobgroup?.id ?? null,
     enable: false,
+    enableLogs: job.enable_logs ?? false,
     runtime: job.runtime != null ? job.runtime : '',
     waittime: job.waittime != null ? job.waittime : '',
     sdate: toDatetimeLocalValue(job.sdate),

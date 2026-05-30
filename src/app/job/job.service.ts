@@ -95,6 +95,7 @@ export class JobService {
       jobtype_id: value.jobtypeId,
       jobgroup_id: this.toNullableLong(value.jobGroupId),
       enable: value.enable,
+      enable_logs: value.enableLogs,
       runtime: this.toNullableLong(value.runtime),
       waittime: this.toNullableLong(value.waittime),
       sdate: this.toApiDate(value.sdate),
