@@ -36,4 +36,6 @@ call "%~dp0copy-to-server.bat"
 if errorlevel 1 exit /b 1
 
 echo.
-echo Done. On server: cd %IOT_REMOTE_DIR% ^&^& chmod +x run.sh ^&^& ./run.sh
+echo Running run.sh on server...
+call "%~dp0run.bat"
+exit /b %errorlevel%

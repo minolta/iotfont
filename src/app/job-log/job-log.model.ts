@@ -24,7 +24,7 @@ export interface JobLogSearchOption {
 }
 
 export interface JobLogDateSearch {
-  id: number;
+  id?: number;
   s: string;
   e: string;
 }

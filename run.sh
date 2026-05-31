@@ -5,6 +5,8 @@ cd "$(dirname "$0")"
 NETWORK="${IOT_DOCKER_NETWORK:-iot-net}"
 DB_DIR="${IOT_DB_DIR:-/home/ky/iot/db}"
 LOG_DIR="${IOT_LOG_DIR:-/home/ky/iot/logs}"
+NETWORK_SCAN_FILE="${IOT_NETWORK_SCAN_FILE:-/home/ky/iot/network_scan.json}"
+IPT_MOUNT="/app/ipt/network_scan.json"
 
 wait_for_api() {
   echo "Waiting for API on port 888..."
@@ -32,7 +34,11 @@ if [[ "${1:-}" != "run" ]]; then
   docker load -i font.tar
 fi
 
-mkdir -p "${DB_DIR}" "${LOG_DIR}"
+mkdir -p "${DB_DIR}" "${LOG_DIR}" "$(dirname "${NETWORK_SCAN_FILE}")"
+if [[ ! -f "${NETWORK_SCAN_FILE}" ]]; then
+  echo '[]' > "${NETWORK_SCAN_FILE}"
+  echo "Created empty IP scan file: ${NETWORK_SCAN_FILE}"
+fi
 if command -v sudo >/dev/null 2>&1; then
   sudo -n chown -R 1001:1001 "${DB_DIR}" "${LOG_DIR}" 2>/dev/null || true
   sudo -n chmod -R u+rwX "${DB_DIR}" "${LOG_DIR}" 2>/dev/null || true
@@ -57,10 +63,14 @@ docker run -d \
   -p 888:8080 \
   -v "${DB_DIR}:/app/data" \
   -v "${LOG_DIR}:/app/logs" \
+  -v "${NETWORK_SCAN_FILE}:${IPT_MOUNT}:ro" \
   -e IOT_SEED_TEST_DATA=true \
   -e IOT_SECURITY_SEED_ADMIN=true \
   -e IOT_SECURITY_ADMIN_USERNAME=admin \
   -e IOT_SECURITY_ADMIN_PASSWORD=admin \
+  -e IOT_DEVICE_IP_SCAN_ENABLED=true \
+  -e IOT_DEVICE_IP_SCAN_FILE_PATH="${IPT_MOUNT}" \
+  -e IOT_DEVICE_IP_SCAN_INTERVAL_MS=600000 \
   -e IOT_CORS_ALLOWED_ORIGIN_PATTERNS="http://localhost:*,http://127.0.0.1:*,http://192.168.*:*" \
   iot-api:latest
 

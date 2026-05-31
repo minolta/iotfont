@@ -34,7 +34,11 @@ export class JobLogService {
   }
 
   getByDateRange(search: JobLogDateSearch): Observable<JobLog[]> {
-    return this.http.post<JobLog[]>(`${this.rootUrl}/bydate`, search);
+    const body: JobLogDateSearch = { s: search.s, e: search.e };
+    if (search.id != null && search.id > 0) {
+      body.id = search.id;
+    }
+    return this.http.post<JobLog[]>(`${this.rootUrl}/bydate`, body);
   }
 
   deleteByDateRange(search: JobLogDateSearch): Observable<JobLogDeleteResult> {

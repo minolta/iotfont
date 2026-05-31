@@ -209,6 +209,14 @@
   color: #475569;
 }
 
+.job-logs-page .logs-table .job-cell {
+  min-width: 8rem;
+  max-width: 14rem;
+  color: #334155;
+  font-size: 0.8125rem;
+  word-break: break-word;
+}
+
 .job-logs-page .logs-table .level-cell {
   width: 6.5rem;
 }

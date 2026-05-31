@@ -8,11 +8,15 @@ services:
     volumes:
       - /home/ky/iot/db:/app/data
       - iot-logs:/app/logs
+      - /home/ky/iot/network_scan.json:/app/ipt/network_scan.json:ro
     environment:
       IOT_SEED_TEST_DATA: "true"
       IOT_SECURITY_SEED_ADMIN: "true"
       IOT_SECURITY_ADMIN_USERNAME: admin
       IOT_SECURITY_ADMIN_PASSWORD: admin
+      IOT_DEVICE_IP_SCAN_ENABLED: "true"
+      IOT_DEVICE_IP_SCAN_FILE_PATH: /app/ipt/network_scan.json
+      IOT_DEVICE_IP_SCAN_INTERVAL_MS: "600000"
       IOT_CORS_ALLOWED_ORIGIN_PATTERNS: "http://localhost:*,http://127.0.0.1:*,http://192.168.*:*"
     restart: unless-stopped
     networks:

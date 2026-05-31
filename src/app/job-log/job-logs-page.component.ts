@@ -10,7 +10,9 @@ import {
   catchError,
   combineLatest,
   finalize,
+  interval,
   map,
+  merge,
   of,
   switchMap,
   timer,
@@ -20,7 +22,7 @@ import { formatDateTime, formatHttpError } from '../shared/format.util';
 import type { Job } from '../job/job.model';
 import { JobService } from '../job/job.service';
 import { JOB_LOG_LEVEL_OPTIONS } from './job-log.model';
-import type { JobLog, JobLogCountResult } from './job-log.model';
+import type { JobLog, JobLogCountResult, JobLogSearchOption } from './job-log.model';
 import { JobLogService } from './job-log.service';
 
 @Component({
@@ -37,6 +39,7 @@ export class JobLogsPageComponent {
   private readonly jobLogService = inject(JobLogService);
 
   readonly pageSize = 100;
+  readonly pollIntervalMs = 5000;
   readonly levelOptions = JOB_LOG_LEVEL_OPTIONS;
 
   readonly jobs = toSignal(
@@ -53,103 +56,112 @@ export class JobLogsPageComponent {
   readonly page = signal(0);
   readonly refreshNonce = signal(0);
   readonly loading = signal(false);
+  readonly manualRefreshing = signal(false);
   readonly deleting = signal(false);
   readonly error = signal<string | null>(null);
   readonly deleteMessage = signal<string | null>(null);
 
+  private readonly logFilters = combineLatest([
+    toObservable(this.jobFilter),
+    toObservable(this.levelFilter),
+    toObservable(this.searchTerm),
+    toObservable(this.useDateFilter),
+    toObservable(this.startDate),
+    toObservable(this.endDate),
+    toObservable(this.page),
+    toObservable(this.refreshNonce),
+  ]);
+
+  private readonly logPoll$ = merge(
+    of('immediate' as const),
+    interval(this.pollIntervalMs).pipe(map(() => 'poll' as const)),
+  );
+
   readonly logStats = toSignal(
-    combineLatest([
-      toObservable(this.jobFilter),
-      toObservable(this.levelFilter),
-      toObservable(this.searchTerm),
-      toObservable(this.useDateFilter),
-      toObservable(this.startDate),
-      toObservable(this.endDate),
-      toObservable(this.refreshNonce),
-    ]).pipe(
-      switchMap(([jobId, level, search, useDateFilter, startDate, endDate]) => {
-        const jobIdNum = Number(jobId.trim());
-        if (!Number.isFinite(jobIdNum) || jobIdNum <= 0) {
-          return of(null as JobLogCountResult | null);
-        }
+    this.logFilters.pipe(
+      switchMap(([jobId, level, search, useDateFilter, startDate, endDate]) =>
+        this.logPoll$.pipe(
+          switchMap((trigger) => {
+            const option = this.buildSearchOption(jobId, level, search, useDateFilter, startDate, endDate);
+            if (!option) {
+              return of(null as JobLogCountResult | null);
+            }
 
-        const option = {
-          jobId: jobIdNum,
-          search: search.trim(),
-          level: level.trim() || undefined,
-        };
-
-        if (useDateFilter) {
-          const start = this.toApiDate(startDate);
-          const end = this.toApiDate(endDate);
-          if (!start || !end) {
-            return of(null as JobLogCountResult | null);
-          }
-          return this.jobLogService.getCount({ ...option, s: start, e: end }).pipe(
-            catchError(() => of(null as JobLogCountResult | null)),
-          );
-        }
-
-        return timer(search.trim() ? 300 : 0).pipe(
-          switchMap(() =>
-            this.jobLogService.getCount(option).pipe(
-              catchError(() => of(null as JobLogCountResult | null)),
-            ),
-          ),
-        );
-      }),
+            const debounceMs =
+              trigger === 'immediate' && search.trim() && !useDateFilter ? 300 : 0;
+            return timer(debounceMs).pipe(
+              switchMap(() =>
+                this.jobLogService.getCount(option).pipe(
+                  catchError(() => of(null as JobLogCountResult | null)),
+                ),
+              ),
+            );
+          }),
+        ),
+      ),
     ),
     { initialValue: null as JobLogCountResult | null },
   );
 
   readonly logs = toSignal(
-    combineLatest([
-      toObservable(this.jobFilter),
-      toObservable(this.levelFilter),
-      toObservable(this.searchTerm),
-      toObservable(this.useDateFilter),
-      toObservable(this.startDate),
-      toObservable(this.endDate),
-      toObservable(this.page),
-      toObservable(this.refreshNonce),
-    ]).pipe(
-      switchMap(([jobId, level, search, useDateFilter, startDate, endDate, page]) => {
-        const trimmedJob = jobId.trim();
-        const jobIdNum = Number(trimmedJob);
-        if (!Number.isFinite(jobIdNum) || jobIdNum <= 0) {
-          return of([] as JobLog[]);
-        }
+    this.logFilters.pipe(
+      switchMap(([jobId, level, search, useDateFilter, startDate, endDate, page]) =>
+        this.logPoll$.pipe(
+          switchMap((trigger) => {
+            const option = this.buildSearchOption(jobId, level, search, useDateFilter, startDate, endDate);
+            if (!option) {
+              return of([] as JobLog[]);
+            }
 
-        this.loading.set(true);
-        this.error.set(null);
+            const showLoading =
+              trigger === 'immediate' && (this.logs().length === 0 || this.manualRefreshing());
+            if (showLoading) {
+              this.loading.set(true);
+            }
+            if (trigger === 'immediate') {
+              this.error.set(null);
+            }
 
-        const request$ = useDateFilter
-          ? this.loadByDateRange(jobIdNum, startDate, endDate)
-          : timer(search.trim() ? 300 : 0).pipe(
-              switchMap(() => {
-                const trimmedSearch = search.trim();
-                const trimmedLevel = level.trim();
-                if (trimmedSearch || trimmedLevel) {
-                  return this.jobLogService.search({
-                    jobId: jobIdNum,
-                    search: trimmedSearch,
-                    level: trimmedLevel || undefined,
-                    page,
-                    limit: this.pageSize,
-                  });
+            const debounceMs =
+              trigger === 'immediate' && search.trim() && !useDateFilter ? 300 : 0;
+            const request$ = useDateFilter
+              ? this.jobLogService.getByDateRange({
+                  id: option.jobId,
+                  s: option.s ?? '',
+                  e: option.e ?? '',
+                })
+              : timer(debounceMs).pipe(
+                  switchMap(() => {
+                    const trimmedSearch = search.trim();
+                    const trimmedLevel = level.trim();
+                    if (trimmedSearch || trimmedLevel || option.jobId == null) {
+                      return this.jobLogService.search({
+                        jobId: option.jobId,
+                        search: trimmedSearch,
+                        level: trimmedLevel || undefined,
+                        page,
+                        limit: this.pageSize,
+                      });
+                    }
+                    return this.jobLogService.getByJob(option.jobId, page, this.pageSize);
+                  }),
+                );
+
+            return request$.pipe(
+              catchError(() => {
+                if (trigger === 'immediate') {
+                  this.error.set('Could not load job logs.');
                 }
-                return this.jobLogService.getByJob(jobIdNum, page, this.pageSize);
+                return of([] as JobLog[]);
+              }),
+              finalize(() => {
+                this.loading.set(false);
+                this.manualRefreshing.set(false);
               }),
             );
-
-        return request$.pipe(
-          catchError(() => {
-            this.error.set('Could not load job logs.');
-            return of([] as JobLog[]);
           }),
-          finalize(() => this.loading.set(false)),
-        );
-      }),
+        ),
+      ),
     ),
     { initialValue: [] as JobLog[] },
   );
@@ -157,19 +169,13 @@ export class JobLogsPageComponent {
   readonly formatDate = formatDateTime;
 
   constructor() {
-    combineLatest([
-      this.route.queryParamMap.pipe(map((qp) => qp.get('jobId') ?? '')),
-      toObservable(this.jobs),
-    ])
-      .pipe(takeUntilDestroyed())
-      .subscribe(([queryJobId, jobs]) => {
-        if (queryJobId) {
-          this.jobFilter.set(queryJobId);
-          return;
-        }
-        if (!this.jobFilter() && jobs.length > 0) {
-          this.jobFilter.set(String(jobs[0].id));
-        }
+    this.route.queryParamMap
+      .pipe(
+        map((qp) => qp.get('jobId') ?? ''),
+        takeUntilDestroyed(),
+      )
+      .subscribe((queryJobId) => {
+        this.jobFilter.set(queryJobId);
       });
   }
 
@@ -194,9 +200,14 @@ export class JobLogsPageComponent {
   }
 
   applyDateFilter(): void {
+    const start = this.toApiDate(this.startDate());
+    const end = this.toApiDate(this.endDate());
+    if (!start || !end) {
+      this.error.set('Select both start and end date/time.');
+      return;
+    }
     this.useDateFilter.set(true);
     this.page.set(0);
-    this.refreshNonce.update((n) => n + 1);
   }
 
   clearDateFilter(): void {
@@ -204,19 +215,22 @@ export class JobLogsPageComponent {
     this.startDate.set('');
     this.endDate.set('');
     this.page.set(0);
-    this.refreshNonce.update((n) => n + 1);
   }
 
   refresh(): void {
     this.deleteMessage.set(null);
+    this.manualRefreshing.set(true);
     this.refreshNonce.update((n) => n + 1);
   }
 
+  isAllJobsView(): boolean {
+    return !this.selectedJobId();
+  }
+
   canDeleteInRange(): boolean {
-    const jobId = Number(this.jobFilter());
+    const jobId = this.selectedJobId();
     return (
-      Number.isFinite(jobId) &&
-      jobId > 0 &&
+      jobId != null &&
       !!this.toApiDate(this.startDate()) &&
       !!this.toApiDate(this.endDate()) &&
       !this.deleting()
@@ -227,10 +241,10 @@ export class JobLogsPageComponent {
     this.error.set(null);
     this.deleteMessage.set(null);
 
-    const jobId = Number(this.jobFilter());
+    const jobId = this.selectedJobId();
     const start = this.toApiDate(this.startDate());
     const end = this.toApiDate(this.endDate());
-    if (!Number.isFinite(jobId) || jobId <= 0 || !start || !end) {
+    if (jobId == null || !start || !end) {
       this.error.set('Select a job and both start/end date/time before deleting.');
       return;
     }
@@ -280,15 +294,25 @@ export class JobLogsPageComponent {
   }
 
   selectedJobLabel(): string {
-    const id = Number(this.jobFilter());
-    if (!Number.isFinite(id) || id <= 0) {
-      return '—';
+    const id = this.selectedJobId();
+    if (id == null) {
+      return 'All jobs';
     }
     const job = this.jobs().find((item) => item.id === id);
     if (!job) {
       return `#${id}`;
     }
     const name = job.name?.trim();
+    return name ? `#${id} — ${name}` : `#${id}`;
+  }
+
+  jobLabelForLog(log: JobLog): string {
+    const id = log.job_id;
+    if (id == null) {
+      return '—';
+    }
+    const job = this.jobs().find((item) => item.id === id);
+    const name = job?.name?.trim();
     return name ? `#${id} — ${name}` : `#${id}`;
   }
 
@@ -338,14 +362,55 @@ export class JobLogsPageComponent {
     return `${this.formatCount(from)}–${this.formatCount(to)} of ${this.formatCount(stats.matching)}`;
   }
 
-  private loadByDateRange(jobId: number, startDate: string, endDate: string) {
-    const start = this.toApiDate(startDate);
-    const end = this.toApiDate(endDate);
-    if (!start || !end) {
-      this.error.set('Select both start and end date/time.');
-      return of([] as JobLog[]);
+  private selectedJobId(): number | null {
+    const trimmed = this.jobFilter().trim();
+    if (!trimmed) {
+      return null;
     }
-    return this.jobLogService.getByDateRange({ id: jobId, s: start, e: end });
+    const id = Number(trimmed);
+    return Number.isFinite(id) && id > 0 ? id : null;
+  }
+
+  private buildSearchOption(
+    jobId: string,
+    level: string,
+    search: string,
+    useDateFilter: boolean,
+    startDate: string,
+    endDate: string,
+  ): JobLogSearchOption | null {
+    const jobIdNum = this.parseJobId(jobId);
+    if (jobId.trim() && jobIdNum == null) {
+      this.error.set('Invalid job id.');
+      return null;
+    }
+
+    const option = {
+      jobId: jobIdNum ?? undefined,
+      search: search.trim(),
+      level: level.trim() || undefined,
+    };
+
+    if (useDateFilter) {
+      const start = this.toApiDate(startDate);
+      const end = this.toApiDate(endDate);
+      if (!start || !end) {
+        this.error.set('Select both start and end date/time.');
+        return null;
+      }
+      return { ...option, s: start, e: end };
+    }
+
+    return option;
+  }
+
+  private parseJobId(value: string): number | null {
+    const trimmed = (value ?? '').trim();
+    if (!trimmed) {
+      return null;
+    }
+    const id = Number(trimmed);
+    return Number.isFinite(id) && id > 0 ? id : null;
   }
 
   private toApiDate(localValue: string): string | null {
