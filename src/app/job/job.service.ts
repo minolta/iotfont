@@ -9,6 +9,7 @@ import { jobToFormValue } from './job.form';
 import type { JobImportPayload, JobImportResult } from './job-import.model';
 import type { Job, JobFormValue } from './job.model';
 import type { JobPortFormValue, JobPortWritePayload } from './job-port.model';
+import type { JobPumpFormValue, JobPumpWritePayload } from './job-pump.model';
 import type { JobSensorFormValue, JobSensorWritePayload } from './job-sensor.model';
 
 @Injectable({ providedIn: 'root' })
@@ -84,8 +85,9 @@ export class JobService {
     );
   }
 
-  private toPayload(value: JobFormValue): Omit<Job, 'id' | 'device' | 'jobtype' | 'ports' | 'sensors'> & {
+  private toPayload(value: JobFormValue): Omit<Job, 'id' | 'device' | 'jobtype' | 'ports' | 'pumps' | 'sensors'> & {
     ports: JobPortWritePayload[];
+    pumps: JobPumpWritePayload[];
     sensors: JobSensorWritePayload[];
   } {
     return {
@@ -104,10 +106,12 @@ export class JobService {
       etimes: this.toNullableString(value.etimes),
       hlow: this.toNullableDecimal(value.hlow),
       hhigh: this.toNullableDecimal(value.hhigh),
+      pump: null,
       tlow: this.toNullableDecimal(value.tlow),
       thigh: this.toNullableDecimal(value.thigh),
       priority: this.toNullableInt(value.priority) ?? 0,
       ports: value.ports.map((port, index) => this.toPortPayload(port, index)),
+      pumps: value.pumps.map((pump, index) => this.toPumpPayload(pump, index)),
       sensors: value.sensors.map((sensor, index) => this.toSensorPayload(sensor, index)),
     };
   }
@@ -122,6 +126,18 @@ export class JobService {
       waittime: this.toNullableLong(port.waittime),
       enable: port.enable,
       sortOrder: this.toNullableInt(port.sortOrder) ?? index,
+    };
+  }
+
+  private toPumpPayload(pump: JobPumpFormValue, index: number): JobPumpWritePayload {
+    const value = this.toNullableInt(pump.value);
+    return {
+      device_id: pump.deviceId,
+      port: pump.port.trim().toLowerCase() || null,
+      value: value == null ? 1 : value !== 0 ? 1 : 0,
+      runtime: this.toNullableLong(pump.runtime),
+      enable: pump.enable,
+      sortOrder: this.toNullableInt(pump.sortOrder) ?? index,
     };
   }
 

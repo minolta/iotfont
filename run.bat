@@ -10,6 +10,8 @@ rem =====================================
 
 if exist "%~dp0makedocker.local.bat" call "%~dp0makedocker.local.bat"
 
+if defined PASS set "PASS=%PASS:"=%"
+
 if /I "%~1"=="local" goto :local
 
 if "%IOT_SSH_USER%"=="" (
@@ -22,7 +24,8 @@ set "RUN_ARG="
 if /I "%~1"=="run" set "RUN_ARG=run"
 
 echo Running run.sh on %SSH_TARGET%:%IOT_REMOTE_DIR% ...
-ssh "%SSH_TARGET%" "cd %IOT_REMOTE_DIR% && sed -i 's/\r$//' run.sh && chmod +x run.sh && ./run.sh %RUN_ARG%"
+set "REMOTE_AUTH_CMD=ssh"
+call "%~dp0remote-auth.bat" "%SSH_TARGET%" "cd %IOT_REMOTE_DIR% && sed -i 's/\r$//' run.sh && chmod +x run.sh && ./run.sh %RUN_ARG%"
 if errorlevel 1 exit /b 1
 
 echo.

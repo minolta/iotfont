@@ -13,7 +13,7 @@
   </div>
 
   @if (sensors().length === 0) {
-    <p class="subsection-empty">No sensors configured. Click “Add sensor” to read humidity, voltage, or generic data.</p>
+    <p class="subsection-empty">No sensors configured. Click “Add sensor” to read humidity, pressure, voltage, or generic data.</p>
   } @else {
     <div class="subsection-list">
       @for (sensorGroup of sensors().controls; track $index) {

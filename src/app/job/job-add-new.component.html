@@ -138,6 +138,15 @@
     </section>
     }
 
+    @if (showHumidityRange()) {
+    <app-job-pumps-section
+      [devices]="devices()"
+      [pumps]="pumpsFormArray"
+      [disabled]="submitting()"
+      (addPump)="addPumpRow()"
+    />
+    }
+
     @if (showTemperatureRange()) {
     <section class="humidity-range-section" aria-labelledby="job-temperature-range-heading">
       <h2 id="job-temperature-range-heading">Temperature range</h2>

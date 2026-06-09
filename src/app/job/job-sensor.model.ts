@@ -31,4 +31,4 @@ export interface JobSensorWritePayload {
   sortOrder: number;
 }
 
-export const JOB_SENSOR_TYPE_OPTIONS = ['humidity', 'volt', 'generic'] as const;
+export const JOB_SENSOR_TYPE_OPTIONS = ['humidity', 'volt', 'pressure', 'generic'] as const;

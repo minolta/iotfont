@@ -2,7 +2,7 @@
   <div class="page-header">
     <div>
       <h1>Running tasks</h1>
-      <p class="hint">Live view of jobs executing in TaskService, including humidity jobs that read sensors before GPIO ports.</p>
+      <p class="hint">Live view of jobs executing in TaskService. Filter by job type name (e.g. portjob, solar, humidity).</p>
     </div>
     <div class="header-actions">
       <label class="auto-refresh-toggle">
@@ -22,11 +22,11 @@
   <div class="summary-card">
     <div class="summary-stat">
       <span class="summary-label">Active now</span>
-      <span class="summary-value">{{ activeCount() }}</span>
+      <span class="summary-value">{{ filteredActiveCount() }}</span>
     </div>
     <div class="summary-stat">
-      <span class="summary-label">Buffer size</span>
-      <span class="summary-value">{{ bufferSize() }}</span>
+      <span class="summary-label">Shown</span>
+      <span class="summary-value">{{ filteredTasks().length }}</span>
     </div>
     <div class="summary-stat summary-stat--heap">
       <span class="summary-label">Heap memory</span>
@@ -47,8 +47,38 @@
       }
     </div>
     @if (bufferSize() > activeCount()) {
-      <span class="summary-meta">{{ bufferSize() - activeCount() }} finished, awaiting cleanup</span>
+      <span class="summary-meta summary-buffer-meta">
+        Total buffer {{ bufferSize() }} ({{ bufferSize() - activeCount() }} finished)
+      </span>
     }
+
+    <div class="summary-filters">
+      <div class="filter-field">
+        <label class="label-text" for="task-job-type">Job type</label>
+        <select
+          id="task-job-type"
+          [value]="jobTypeFilter()"
+          (change)="onJobTypeFilterChange($any($event.target).value)"
+        >
+          <option value="">All types</option>
+          @for (jobType of jobTypes(); track jobType.id) {
+            <option [value]="jobType.name">{{ jobTypeLabel(jobType.name) }}</option>
+          }
+        </select>
+      </div>
+      <div class="filter-field">
+        <label class="label-text" for="task-status">Status</label>
+        <select
+          id="task-status"
+          [value]="statusFilter()"
+          (change)="onStatusFilterChange($any($event.target).value)"
+        >
+          <option value="all">All</option>
+          <option value="running">Running only</option>
+          <option value="finished">Finished only</option>
+        </select>
+      </div>
+    </div>
   </div>
 
   @if (error(); as err) {
@@ -60,8 +90,8 @@
 
   @if (loading() && tasks().length === 0) {
     <p class="status">Loading…</p>
-  } @else if (tasks().length === 0) {
-    <p class="empty-hint">No tasks in the runner buffer right now.</p>
+  } @else if (filteredTasks().length === 0) {
+    <p class="empty-hint">No tasks match the current filters.</p>
   } @else {
     <div class="table-wrap">
       <table>
@@ -77,7 +107,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (task of tasks(); track task.jobId) {
+          @for (task of filteredTasks(); track task.jobId) {
             <tr>
               <td>
                 <a [routerLink]="['/jobs', task.jobId, 'edit']" class="task-link">

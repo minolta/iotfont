@@ -2,6 +2,7 @@ import { toDatetimeLocalValue, toTimeInputValue } from '../shared/format.util';
 
 import type { Job, JobFormValue } from './job.model';
 import { jobPortsToFormValues } from './job-port.form';
+import { jobPumpsToFormValues } from './job-pump.form';
 import { jobSensorsToFormValues } from './job-sensor.form';
 
 export function jobToFormValue(job: Job, overrides: Partial<JobFormValue> = {}): JobFormValue {
@@ -26,6 +27,7 @@ export function jobToFormValue(job: Job, overrides: Partial<JobFormValue> = {}):
     thigh: job.thigh != null ? job.thigh : '',
     priority: job.priority != null ? job.priority : '0',
     ports: jobPortsToFormValues(job.ports),
+    pumps: jobPumpsToFormValues(job),
     sensors: jobSensorsToFormValues(job.sensors),
     ...overrides,
   };

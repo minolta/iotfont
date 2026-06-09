@@ -27,11 +27,21 @@ wait_for_api() {
 # ./run.sh       = load images + start containers
 # ./run.sh run   = start containers only (images already loaded)
 if [[ "${1:-}" != "run" ]]; then
-  [[ -f api.tar ]] || { echo "Missing api.tar"; exit 1; }
-  [[ -f font.tar ]] || { echo "Missing font.tar"; exit 1; }
-  echo "Loading images..."
-  docker load -i api.tar
-  docker load -i font.tar
+  HUB_USER="${IOT_DOCKERHUB_USER:-${DOCKERHUB_USER:-}}"
+  HUB_TAG="${IOT_DOCKERHUB_TAG:-${DOCKERHUB_TAG:-latest}}"
+  if [[ -n "${HUB_USER}" ]]; then
+    echo "Pulling images from Docker Hub (${HUB_USER})..."
+    docker pull "${HUB_USER}/iot-api:${HUB_TAG}"
+    docker pull "${HUB_USER}/iot-font:${HUB_TAG}"
+    docker tag "${HUB_USER}/iot-api:${HUB_TAG}" iot-api:latest
+    docker tag "${HUB_USER}/iot-font:${HUB_TAG}" iot-font:latest
+  else
+    [[ -f api.tar ]] || { echo "Missing api.tar"; exit 1; }
+    [[ -f font.tar ]] || { echo "Missing font.tar"; exit 1; }
+    echo "Loading images..."
+    docker load -i api.tar
+    docker load -i font.tar
+  fi
 fi
 
 mkdir -p "${DB_DIR}" "${LOG_DIR}" "$(dirname "${NETWORK_SCAN_FILE}")"
@@ -64,7 +74,8 @@ docker run -d \
   -v "${DB_DIR}:/app/data" \
   -v "${LOG_DIR}:/app/logs" \
   -v "${NETWORK_SCAN_FILE}:${IPT_MOUNT}:ro" \
-  -e IOT_SEED_TEST_DATA=true \
+  -e SPRING_PROFILES_ACTIVE=prod \
+  -e IOT_SEED_TEST_DATA=false \
   -e IOT_SECURITY_SEED_ADMIN=true \
   -e IOT_SECURITY_ADMIN_USERNAME=admin \
   -e IOT_SECURITY_ADMIN_PASSWORD=admin \

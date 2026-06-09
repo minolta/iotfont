@@ -10,7 +10,8 @@ services:
       - iot-logs:/app/logs
       - /home/ky/iot/network_scan.json:/app/ipt/network_scan.json:ro
     environment:
-      IOT_SEED_TEST_DATA: "true"
+      SPRING_PROFILES_ACTIVE: prod
+      IOT_SEED_TEST_DATA: "false"
       IOT_SECURITY_SEED_ADMIN: "true"
       IOT_SECURITY_ADMIN_USERNAME: admin
       IOT_SECURITY_ADMIN_PASSWORD: admin

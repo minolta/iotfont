@@ -12,7 +12,8 @@ services:
       - iot-logs:/app/logs
       - ${IOT_NETWORK_SCAN_FILE:-./network_scan.json}:/app/ipt/network_scan.json:ro
     environment:
-      IOT_SEED_TEST_DATA: "true"
+      SPRING_PROFILES_ACTIVE: prod
+      IOT_SEED_TEST_DATA: "false"
       IOT_SECURITY_SEED_ADMIN: "true"
       IOT_DEVICE_IP_SCAN_ENABLED: "true"
       IOT_DEVICE_IP_SCAN_FILE_PATH: /app/ipt/network_scan.json

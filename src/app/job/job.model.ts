@@ -2,6 +2,7 @@ import type { Device } from '../device/device.model';
 import type { JobGroup } from '../job-group/job-group.model';
 import type { JobType } from '../job-type/job-type.model';
 import type { JobPort, JobPortFormValue } from './job-port.model';
+import type { JobPump, JobPumpFormValue } from './job-pump.model';
 import type { JobSensor, JobSensorFormValue } from './job-sensor.model';
 
 /** Matches `me.pixka.iot.d.Job` JSON from `/rest/iot/job/*`. */
@@ -28,12 +29,15 @@ export interface Job {
   hlow: number | null;
   /** Maximum humidity (%) to trigger GPIO ports — used by HumidityJobWorker */
   hhigh: number | null;
+  /** @deprecated Legacy single pump delay — use pumps[] instead */
+  pump: number | null;
   /** Minimum temperature (°C) to trigger GPIO ports */
   tlow: number | null;
   /** Maximum temperature (°C) to trigger GPIO ports */
   thigh: number | null;
   priority: number | null;
   ports?: JobPort[] | null;
+  pumps?: JobPump[] | null;
   sensors?: JobSensor[] | null;
 }
 
@@ -57,6 +61,7 @@ export interface JobFormValue {
   thigh: string | number | null;
   priority: string | number | null;
   ports: JobPortFormValue[];
+  pumps: JobPumpFormValue[];
   sensors: JobSensorFormValue[];
 }
 

@@ -3,3 +3,8 @@ rem Copy to makedocker.local.bat and edit (gitignored)
 set "IOT_SSH_USER=ky"
 set "IOT_SERVER=192.168.88.5"
 set "IOT_REMOTE_DIR=/home/ky/iot"
+
+rem Docker Hub push (optional)
+rem set "DOCKERHUB_USER=yourdockerhubuser"
+rem set "DOCKERHUB_TAG=latest"
+rem set "DOCKERHUB_TOKEN=dckr_pat_..."

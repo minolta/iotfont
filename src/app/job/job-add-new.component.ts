@@ -10,6 +10,8 @@ import { JobTypeService } from '../job-type/job-type.service';
 import { formatHttpError } from '../shared/format.util';
 import { createPortFormGroup, readPortFormValues } from './job-port.form';
 import { JobPortsSectionComponent } from './job-ports-section.component';
+import { createPumpFormGroup, readPumpFormValues } from './job-pump.form';
+import { JobPumpsSectionComponent } from './job-pumps-section.component';
 import { createSensorFormGroup, readSensorFormValues } from './job-sensor.form';
 import { JobSensorsSectionComponent } from './job-sensors-section.component';
 import {
@@ -28,6 +30,7 @@ import { JobService } from './job.service';
     ReactiveFormsModule,
     RouterLink,
     JobPortsSectionComponent,
+    JobPumpsSectionComponent,
     JobSensorsSectionComponent,
     JobTypeGuidePanelComponent,
   ],
@@ -82,6 +85,7 @@ export class JobAddNewComponent {
     thigh: [''],
     priority: ['0'],
     ports: this.fb.array([]),
+    pumps: this.fb.array([]),
     sensors: this.fb.array([]),
   });
 
@@ -125,6 +129,10 @@ export class JobAddNewComponent {
     return this.form.controls.ports;
   }
 
+  get pumpsFormArray(): FormArray {
+    return this.form.controls.pumps;
+  }
+
   get sensorsFormArray(): FormArray {
     return this.form.controls.sensors;
   }
@@ -133,6 +141,13 @@ export class JobAddNewComponent {
     const deviceId = Number(this.form.controls.deviceId.value);
     this.portsFormArray.push(
       createPortFormGroup(this.fb, undefined, Number.isFinite(deviceId) && deviceId > 0 ? deviceId : null),
+    );
+  }
+
+  addPumpRow(): void {
+    const deviceId = Number(this.form.controls.deviceId.value);
+    this.pumpsFormArray.push(
+      createPumpFormGroup(this.fb, undefined, Number.isFinite(deviceId) && deviceId > 0 ? deviceId : null),
     );
   }
 
@@ -173,6 +188,7 @@ export class JobAddNewComponent {
         thigh: value.thigh ?? '',
         priority: value.priority ?? '0',
         ports: readPortFormValues(this.portsFormArray.getRawValue()),
+        pumps: readPumpFormValues(this.pumpsFormArray.getRawValue()),
         sensors: readSensorFormValues(this.sensorsFormArray.getRawValue()),
       })
       .pipe(finalize(() => this.submitting.set(false)))

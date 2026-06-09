@@ -2,10 +2,20 @@
 setlocal EnableExtensions
 cd /d "%~dp0"
 
+rem Optional password (no SSH key): set before call, e.g. set PASS=yourpassword
+if defined PASS (
+  set "PASS=%PASS:"=%"
+  echo Using SSH password from PASS environment variable.
+)
+
 rem ============ EDIT THESE ============
 set "IOT_SSH_USER=ky"
 set "IOT_SERVER=192.168.88.5"
 set "IOT_REMOTE_DIR=/home/ky/iot"
+rem Docker Hub (optional): set user to tag + push after build
+rem set "DOCKERHUB_USER=yourdockerhubuser"
+rem set "DOCKERHUB_TAG=latest"
+rem set "DOCKERHUB_TOKEN=your_token"
 rem =====================================
 
 if exist "%~dp0makedocker.local.bat" call "%~dp0makedocker.local.bat"
@@ -24,6 +34,13 @@ popd
 echo Building iot-font...
 docker build -t iot-font:latest .
 if errorlevel 1 exit /b 1
+
+if defined DOCKERHUB_USER (
+  echo.
+  echo Pushing to Docker Hub ^(!DOCKERHUB_USER!^)...
+  call "%~dp0push-dockerhub.bat" iot-api iot-font
+  if errorlevel 1 exit /b 1
+)
 
 echo Saving images...
 docker save -o api.tar iot-api:latest

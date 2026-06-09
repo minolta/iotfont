@@ -11,6 +11,8 @@ import { formatHttpError, toDatetimeLocalValue, toTimeInputValue } from '../shar
 import type { Job } from './job.model';
 import { createPortFormGroup, jobPortsToFormValues, readPortFormValues } from './job-port.form';
 import { JobPortsSectionComponent } from './job-ports-section.component';
+import { createPumpFormGroup, jobPumpsToFormValues, readPumpFormValues } from './job-pump.form';
+import { JobPumpsSectionComponent } from './job-pumps-section.component';
 import { createSensorFormGroup, jobSensorsToFormValues, readSensorFormValues } from './job-sensor.form';
 import { JobSensorsSectionComponent } from './job-sensors-section.component';
 import {
@@ -29,6 +31,7 @@ import { JobService } from './job.service';
     ReactiveFormsModule,
     RouterLink,
     JobPortsSectionComponent,
+    JobPumpsSectionComponent,
     JobSensorsSectionComponent,
     JobTypeGuidePanelComponent,
   ],
@@ -86,6 +89,7 @@ export class JobEditComponent {
     thigh: [''],
     priority: ['0'],
     ports: this.fb.array([]),
+    pumps: this.fb.array([]),
     sensors: this.fb.array([]),
   });
 
@@ -129,6 +133,10 @@ export class JobEditComponent {
     return this.form.controls.ports;
   }
 
+  get pumpsFormArray(): FormArray {
+    return this.form.controls.pumps;
+  }
+
   get sensorsFormArray(): FormArray {
     return this.form.controls.sensors;
   }
@@ -137,6 +145,13 @@ export class JobEditComponent {
     const deviceId = Number(this.form.controls.deviceId.value);
     this.portsFormArray.push(
       createPortFormGroup(this.fb, undefined, Number.isFinite(deviceId) && deviceId > 0 ? deviceId : null),
+    );
+  }
+
+  addPumpRow(): void {
+    const deviceId = Number(this.form.controls.deviceId.value);
+    this.pumpsFormArray.push(
+      createPumpFormGroup(this.fb, undefined, Number.isFinite(deviceId) && deviceId > 0 ? deviceId : null),
     );
   }
 
@@ -199,6 +214,7 @@ export class JobEditComponent {
           priority: job.priority != null ? String(job.priority) : '0',
         });
         this.setPortsFromJob(job);
+        this.setPumpsFromJob(job);
         this.setSensorsFromJob(job);
       });
   }
@@ -208,6 +224,14 @@ export class JobEditComponent {
     const defaultDeviceId = job.device_id ?? job.device?.id ?? null;
     for (const port of jobPortsToFormValues(job.ports)) {
       this.portsFormArray.push(createPortFormGroup(this.fb, port, defaultDeviceId));
+    }
+  }
+
+  private setPumpsFromJob(job: Job): void {
+    this.pumpsFormArray.clear();
+    const defaultDeviceId = job.device_id ?? job.device?.id ?? null;
+    for (const pump of jobPumpsToFormValues(job)) {
+      this.pumpsFormArray.push(createPumpFormGroup(this.fb, pump, defaultDeviceId));
     }
   }
 
@@ -252,6 +276,7 @@ export class JobEditComponent {
         thigh: value.thigh ?? '',
         priority: value.priority ?? '0',
         ports: readPortFormValues(this.portsFormArray.getRawValue()),
+        pumps: readPumpFormValues(this.pumpsFormArray.getRawValue()),
         sensors: readSensorFormValues(this.sensorsFormArray.getRawValue()),
       })
       .pipe(finalize(() => this.submitting.set(false)))

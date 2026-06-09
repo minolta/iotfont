@@ -16,39 +16,54 @@ export interface JobTypeGuide {
 
 const GUIDES: Record<string, JobTypeGuide> = {
   humidity: {
-    summary: 'อ่านความชื้นจาก sensor แล้วสั่ง GPIO เมื่อค่าอยู่ในช่วงที่กำหนด',
+    summary: 'อ่านความชื้นจาก sensor แล้วเปิดปั๊ม (d5) เมื่อค่าอยู่ในช่วงที่กำหนด',
     howItWorks:
-      'ตรวจเวลา (start/end date, daily time) → อ่าน sensor ที่เปิดใช้ → ถ้าความชื้นอยู่ระหว่าง Min–Max จะรัน GPIO ports ที่ตั้งไว้ มิฉะนั้นข้าม',
-    requiredFields: ['Device', 'Sensors (อย่างน้อย 1 ตัวที่ Enabled)'],
+      'ตรวจเวลา → อ่าน sensor → ถ้าความชื้นอยู่ระหว่าง Min–Max จะเรียก http://device-ip/run?d5=1&delay=pump บน device ของ job แล้วรอ runtime/waittime ของ job',
+    requiredFields: ['Device', 'Sensors (อย่างน้อย 1 ตัวที่ Enabled)', 'Pumps (อย่างน้อย 1 ตัวที่ Enabled)'],
     optionalFields: [
       'Min/Max humidity (%) — ว่าง = รับทุกค่า',
-      'GPIO ports — อุปกรณ์, พอร์ต, Logic High/Low, Runtime, Wait time',
+      'Pumps — delay -1 = เปิดปั๊มพร้อมกัน แล้ว GPIO รันทีละตัวตาม runtime ของแต่ละ port',
+      'GPIO ports — สั่งหลังเปิดปั๊ม',
       'Runtime / Wait time ของ job',
       'Start/End date, Daily start/end time',
       'Job group, Priority',
     ],
+    descriptionOptions: [
+      'pump delay -1 — เปิดปั๊มทุกตัวพร้อมกัน, GPIO ใช้ runtime ของแต่ละ port',
+      'multi หรือ sametime — สั่ง GPIO ทุกตัวพร้อมกัน (ไม่รอ runtime ต่อ port)',
+      '|multi หรือ |sametime — โหมดเดียวกัน',
+    ],
+    descriptionExamples: ['-1', 'multi', 'sametime', 'multi|notes'],
   },
   runhbyd1: {
     summary: 'เหมือน humidity (ชื่อ legacy)',
-    howItWorks: 'ทำงานเหมือน job type humidity — อ่านความชื้นแล้วควบคุม GPIO ตามช่วง hlow/hhigh',
-    requiredFields: ['Device', 'Sensors (อย่างน้อย 1 ตัวที่ Enabled)'],
+    howItWorks:
+      'ทำงานเหมือน humidity — อ่านความชื้นแล้วเรียก run?d5=1&delay=pump เมื่อค่าอยู่ในช่วง hlow/hhigh',
+    requiredFields: ['Device', 'Sensors', 'Pumps'],
     optionalFields: [
       'Min/Max humidity (%)',
       'GPIO ports',
+      'multi / sametime ใน Description',
       'Runtime / Wait time, ช่วงเวลารัน',
       'Job group, Priority',
     ],
+    descriptionOptions: ['multi หรือ sametime — สั่ง GPIO ทุกตัวพร้อมกัน'],
+    descriptionExamples: ['multi'],
   },
   readhumidity: {
     summary: 'เหมือน humidity (ชื่อ legacy)',
-    howItWorks: 'ทำงานเหมือน job type humidity — อ่านความชื้นแล้วควบคุม GPIO ตามช่วง hlow/hhigh',
-    requiredFields: ['Device', 'Sensors (อย่างน้อย 1 ตัวที่ Enabled)'],
+    howItWorks:
+      'ทำงานเหมือน humidity — อ่านความชื้นแล้วเรียก run?d5=1&delay=pump เมื่อค่าอยู่ในช่วง hlow/hhigh',
+    requiredFields: ['Device', 'Sensors', 'Pumps'],
     optionalFields: [
       'Min/Max humidity (%)',
       'GPIO ports',
+      'multi / sametime ใน Description',
       'Runtime / Wait time, ช่วงเวลารัน',
       'Job group, Priority',
     ],
+    descriptionOptions: ['multi หรือ sametime — สั่ง GPIO ทุกตัวพร้อมกัน'],
+    descriptionExamples: ['multi'],
   },
   readht: {
     summary: 'อ่านและบันทึกค่าความชื้น / อุณหภูมิจาก sensor (ไม่สั่ง GPIO อัตโนมัติ)',
@@ -78,6 +93,24 @@ const GUIDES: Record<string, JobTypeGuide> = {
       'ช่วงเวลารัน',
     ],
   },
+  readpressure: {
+    summary: 'อ่านและบันทึกความดัน (psi) จาก JSON ของ sensor',
+    howItWorks:
+      'ตรวจเวลา → HTTP GET ไป read path ของ sensor → อ่าน JSON field psi (หรือ pressure) → บันทึกลง iot_pressure',
+    requiredFields: ['Device'],
+    optionalFields: [
+      'Sensors ประเภท pressure — ถ้าไม่ใส่จะอ่านจาก device ของ job ที่ path /',
+      'Read path เช่น / หรือ /status',
+      'ช่วงเวลารัน',
+    ],
+    descriptionExamples: ['{"psi":32.5}'],
+  },
+  pressure: {
+    summary: 'เหมือน readpressure (ชื่อ legacy)',
+    howItWorks: 'ทำงานเหมือน readpressure — อ่าน JSON psi จาก sensor แล้วบันทึก',
+    requiredFields: ['Device'],
+    optionalFields: ['Sensors ประเภท pressure', 'Read path', 'ช่วงเวลารัน'],
+  },
   tempwork: {
     summary: 'อ่านอุณหภูมิจาก sensor แล้วสั่ง GPIO เมื่อค่าอยู่ในช่วงที่กำหนด',
     howItWorks:
@@ -100,16 +133,18 @@ const GUIDES: Record<string, JobTypeGuide> = {
   portjob: {
     summary: 'อ่านสถานะ port ของ device แล้วสั่ง GPIO เมื่อเงื่อนไขใน Description ตรง',
     howItWorks:
-      'ตรวจเวลา → อ่านสถานะ port จาก device → ถ้าตรงเงื่อนไขใน Description จะรัน GPIO ports ที่ตั้งไว้',
+      'ตรวจเวลา → อ่านสถานะ port จาก device → ถ้าตรงเงื่อนไขใน Description จะรัน GPIO ports ที่ตั้งไว้ (แบบ multi/sametime จะสั่งทุก port พร้อมกัน แล้วรอ runtime/waittime ของ job)',
     requiredFields: ['Device', 'Description (รูปแบบ port condition)', 'GPIO ports ที่จะสั่ง'],
-    optionalFields: ['Runtime / Wait time ของแต่ละ port', 'ช่วงเวลารัน'],
+    optionalFields: ['Runtime / Wait time ของ job หรือแต่ละ port', 'multi / sametime ใน Description', 'ช่วงเวลารัน'],
     descriptionOptions: [
       'port,<ชื่อพอร์ต>,<ค่า> — เช่น port,D6,0 หรือ port,fastport,0',
+      'port,<ชื่อ>,<ค่า>|multi หรือ |sametime — สั่งทุก GPIO พร้อมกัน แล้วรอ runtime/waittime ของ job',
+      'multi หรือ sametime ใน Description — โหมดเดียวกัน (ไม่รอ runtime ต่อ port)',
       'port,<ชื่อ>,<ค่า>|<config> — เช่น port,D6,0|PALAlle',
       'รูปแบบเก่า: D6,0 หรือ D6|0 หรือ D6:low',
       'ค่า logic: 0/1, low/high, on/off',
     ],
-    descriptionExamples: ['port,D6,0', 'port,fastport,0|PALAlle', 'D6,0'],
+    descriptionExamples: ['port,D6,0|multi', 'port,fastport,0|sametime', 'multi|port,D6,0', 'port,D6,0', 'D6,0'],
   },
   solarcheck: {
     summary: 'ตรวจสถานะ solar แล้วบอก job ประเภท solar ว่ารันได้หรือไม่',
@@ -181,5 +216,12 @@ export function jobTypeUsesTemperatureRange(name: string | null | undefined): bo
 
 export function jobTypeUsesDescriptionSyntax(name: string | null | undefined): boolean {
   const key = normalizeJobTypeName(name);
-  return key === 'portjob' || key === 'solarcheck' || key === 'solar';
+  return (
+    key === 'portjob' ||
+    key === 'solarcheck' ||
+    key === 'solar' ||
+    key === 'humidity' ||
+    key === 'runhbyd1' ||
+    key === 'readhumidity'
+  );
 }

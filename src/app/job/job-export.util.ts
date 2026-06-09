@@ -1,4 +1,5 @@
 import type { JobPortWritePayload } from './job-port.model';
+import type { JobPumpWritePayload } from './job-pump.model';
 import type { JobSensorWritePayload } from './job-sensor.model';
 import type { Job } from './job.model';
 
@@ -19,13 +20,14 @@ export interface JobExportRecord {
   etimes: string | null;
   hlow: number | null;
   hhigh: number | null;
+  pump: number | null;
   tlow: number | null;
   thigh: number | null;
   priority: number;
   ports: JobPortWritePayload[];
+  pumps: JobPumpWritePayload[];
   sensors: JobSensorWritePayload[];
 }
-
 export type JobExportPayload = JobExportRecord[];
 
 export function jobToExportRecord(job: Job): JobExportRecord {
@@ -45,6 +47,7 @@ export function jobToExportRecord(job: Job): JobExportRecord {
     etimes: job.etimes,
     hlow: job.hlow,
     hhigh: job.hhigh,
+    pump: job.pump,
     tlow: job.tlow,
     thigh: job.thigh,
     priority: job.priority ?? 0,
@@ -58,6 +61,16 @@ export function jobToExportRecord(job: Job): JobExportRecord {
         waittime: port.waittime,
         enable: port.enable ?? true,
         sortOrder: port.sortOrder ?? 0,
+      }),
+    ),
+    pumps: (job.pumps ?? []).map(
+      (pump): JobPumpWritePayload => ({
+        device_id: pump.device_id ?? pump.device?.id ?? null,
+        port: pump.port,
+        value: pump.value,
+        runtime: pump.runtime,
+        enable: pump.enable ?? true,
+        sortOrder: pump.sortOrder ?? 0,
       }),
     ),
     sensors: (job.sensors ?? []).map(

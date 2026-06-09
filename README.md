@@ -60,6 +60,40 @@ Set up SSH keys once (no password prompt):
 ssh-copy-id ky@192.168.88.5
 ```
 
+Or set a password before deploy (quotes are optional):
+
+```bat
+set PASS=yourpassword
+makedocker.bat
+```
+
+Uses `sshpass`, PuTTY `plink`/`pscp`, or OpenSSH `SSH_ASKPASS` when `PASS` is set.
+
+### Docker Hub (optional)
+
+Set in `makedocker.local.bat` or before `makedocker.bat`:
+
+| Variable          | Description                          |
+|-------------------|--------------------------------------|
+| `DOCKERHUB_USER`  | Docker Hub username (enables push)   |
+| `DOCKERHUB_TAG`   | Tag (default `latest`)               |
+| `DOCKERHUB_TOKEN` | Access token (optional auto-login)   |
+
+Images pushed: `USER/iot-api:TAG`, `USER/iot-font:TAG`.
+
+```bat
+docker login
+set DOCKERHUB_USER=yourdockerhubuser
+makedocker.bat
+```
+
+On the server, pull instead of loading `.tar` files:
+
+```bash
+export IOT_DOCKERHUB_USER=yourdockerhubuser
+./run.sh
+```
+
 ---
 
 ## Deploy from Windows
