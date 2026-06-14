@@ -114,14 +114,21 @@ const GUIDES: Record<string, JobTypeGuide> = {
   tempwork: {
     summary: 'อ่านอุณหภูมิจาก sensor แล้วสั่ง GPIO เมื่อค่าอยู่ในช่วงที่กำหนด',
     howItWorks:
-      'ตรวจเวลา → อ่านอุณหภูมิจาก sensor → ถ้าอยู่ระหว่าง Min–Max จะรัน GPIO ports มิฉะนั้นข้าม',
+      'ตรวจเวลา → อ่านอุณหภูมิจาก sensor → ถ้าอยู่ระหว่าง Min–Max จะเรียก http://device-ip/run?port=D5&value=1&delay=runtime บน GPIO แต่ละตัว',
     requiredFields: ['Device'],
     optionalFields: [
       'Min/Max temperature (°C) — ว่าง = รับทุกค่า',
       'Sensors — ถ้าไม่ใส่จะอ่านจาก device ของ job',
       'GPIO ports',
-      'Runtime / Wait time, ช่วงเวลารัน',
+      'multi / sametime ใน Description',
+      'Runtime / Wait time ของ job หรือแต่ละ port',
+      'ช่วงเวลารัน',
     ],
+    descriptionOptions: [
+      'multi หรือ sametime — สั่ง GPIO ทุกตัวพร้อมกัน (แต่ละ port ใช้ runtime เป็น delay บน device)',
+      '|multi หรือ |sametime — โหมดเดียวกัน',
+    ],
+    descriptionExamples: ['multi', 'sametime', 'multi|notes'],
   },
   temperature: {
     summary: 'job ทั่วไป (ชื่อ legacy) — อ่าน sensor และรัน ports ตามที่ตั้งไว้',

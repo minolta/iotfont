@@ -21,6 +21,7 @@ import { downloadJsonFile, timestampForFilename } from '../shared/download.util'
 import { jobsToExportPayload } from './job-export.util';
 import type { Job } from './job.model';
 import { JobService } from './job.service';
+import { TaskService } from '../task/task.service';
 
 @Component({
   selector: 'app-job-list',
@@ -32,6 +33,7 @@ import { JobService } from './job.service';
 })
 export class JobListComponent {
   private readonly jobService = inject(JobService);
+  private readonly taskService = inject(TaskService);
   private readonly deviceService = inject(DeviceService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -55,6 +57,8 @@ export class JobListComponent {
   readonly deleteError = signal<string | null>(null);
   readonly cloningId = signal<number | null>(null);
   readonly cloneError = signal<string | null>(null);
+  readonly directRunError = signal<string | null>(null);
+  readonly directRunningId = signal<number | null>(null);
   readonly exporting = signal(false);
   readonly exportError = signal<string | null>(null);
 
@@ -205,6 +209,28 @@ export class JobListComponent {
         },
         error: (err: unknown) => {
           this.cloneError.set(formatHttpError(err, 'Could not clone job.'));
+        },
+      });
+  }
+
+  directRunJob(job: Job): void {
+    this.directRunError.set(null);
+    const label = job.name?.trim() || `#${job.id}`;
+    if (
+      !window.confirm(
+        `Direct run job "${label}" now?\n\nBypasses schedule, temperature/humidity checks, and port conditions. Runs configured pumps and GPIO immediately.`,
+      )
+    ) {
+      return;
+    }
+    this.directRunningId.set(job.id);
+    this.taskService
+      .directRun(job.id)
+      .pipe(finalize(() => this.directRunningId.set(null)))
+      .subscribe({
+        next: () => this.refreshNonce.update((n) => n + 1),
+        error: (err: unknown) => {
+          this.directRunError.set(formatHttpError(err, 'Could not direct run job.'));
         },
       });
   }

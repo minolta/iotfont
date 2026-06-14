@@ -31,3 +31,10 @@ export interface KillTaskResponse {
   jobId: number;
   killed: boolean;
 }
+
+/** Matches `me.pixka.iot.o.DirectRunResponse`. */
+export interface DirectRunResponse {
+  jobId: number;
+  started: boolean;
+  message: string | null;
+}

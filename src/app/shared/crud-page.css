@@ -440,6 +440,28 @@ td.col-actions {
   cursor: not-allowed;
 }
 
+.direct-run-btn {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #166534;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  margin-right: 0.35rem;
+  cursor: pointer;
+}
+
+.direct-run-btn:hover:not(:disabled) {
+  background: #dcfce7;
+}
+
+.direct-run-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .export-btn {
   font: inherit;
   font-size: 0.9rem;

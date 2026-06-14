@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 import { IOT_API_BASE_URL } from '../api/iot-api-base-url.token';
 
-import type { KillTaskResponse, RunningTasksResponse } from './task.model';
+import type { DirectRunResponse, KillTaskResponse, RunningTasksResponse } from './task.model';
 
 @Injectable({ providedIn: 'root' })
 export class TaskService {
@@ -22,5 +22,9 @@ export class TaskService {
 
   kill(jobId: number): Observable<KillTaskResponse> {
     return this.http.post<KillTaskResponse>(`${this.rootUrl}/kill/${jobId}`, null);
+  }
+
+  directRun(jobId: number): Observable<DirectRunResponse> {
+    return this.http.post<DirectRunResponse>(`${this.rootUrl}/directrun/${jobId}`, null);
   }
 }

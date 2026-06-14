@@ -62,6 +62,9 @@
   @if (cloneError(); as cloneErr) {
     <p class="error" role="alert">{{ cloneErr }}</p>
   }
+  @if (directRunError(); as runErr) {
+    <p class="error" role="alert">{{ runErr }}</p>
+  }
   @if (exportError(); as exportErr) {
     <p class="error" role="alert">{{ exportErr }}</p>
   }
@@ -112,6 +115,14 @@
             <td class="mono">{{ formatHumidityRange(job.hlow, job.hhigh) }}</td>
             <td class="mono">{{ formatTemperatureRange(job.tlow, job.thigh) }}</td>
             <td class="col-actions">
+              <button
+                type="button"
+                class="direct-run-btn"
+                [disabled]="directRunningId() === job.id || cloningId() === job.id || deletingId() === job.id"
+                (click)="directRunJob(job)"
+              >
+                {{ directRunningId() === job.id ? 'Running…' : 'Direct run' }}
+              </button>
               <button
                 type="button"
                 class="clone-btn"
