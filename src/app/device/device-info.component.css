@@ -508,6 +508,27 @@ tbody tr:last-child td {
   cursor: pointer;
 }
 
+.restart-btn {
+  font: inherit;
+  font-size: 0.8rem;
+  margin-right: 0.35rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid #fcd34d;
+  border-radius: 4px;
+  background: #fffbeb;
+  color: #92400e;
+  cursor: pointer;
+}
+
+.restart-btn:hover:not(:disabled) {
+  background: #fef3c7;
+}
+
+.restart-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .json-btn:hover {
   background: #f3f4f6;
 }

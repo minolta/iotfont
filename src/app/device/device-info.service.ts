@@ -14,4 +14,8 @@ export class DeviceInfoService {
   fetchLiveJson(deviceId: number): Observable<DeviceLiveJson> {
     return this.http.get<DeviceLiveJson>(`${this.rootUrl}/live-json/${deviceId}`);
   }
+
+  restart(deviceId: number): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.rootUrl}/restart/${deviceId}`, null);
+  }
 }

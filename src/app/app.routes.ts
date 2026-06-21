@@ -29,6 +29,11 @@ export const routes: Routes = [
           import('./device/device-import.component').then((m) => m.DeviceImportComponent),
       },
       {
+        path: 'devices/firmware',
+        loadComponent: () =>
+          import('./firmware/firmware-upload.component').then((m) => m.FirmwareUploadComponent),
+      },
+      {
         path: 'devices/:id/edit',
         loadComponent: () =>
           import('./device/device-edit.component').then((m) => m.DeviceEditComponent),

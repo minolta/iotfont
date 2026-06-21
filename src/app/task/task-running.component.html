@@ -2,7 +2,7 @@
   <div class="page-header">
     <div>
       <h1>Running tasks</h1>
-      <p class="hint">Live view of jobs executing in TaskService. Filter by job type name (e.g. portjob, solar, humidity).</p>
+      <p class="hint">Live view of jobs in TaskService. Finished tasks stay visible for 2 minutes. Check filters if tasks are missing.</p>
     </div>
     <div class="header-actions">
       <label class="auto-refresh-toggle">
@@ -11,7 +11,7 @@
           [checked]="autoRefreshEnabled()"
           (change)="toggleAutoRefresh($any($event.target).checked)"
         />
-        Auto refresh (5s)
+        Auto refresh (2s)
       </label>
       <button type="button" class="refresh-btn" [disabled]="loading()" (click)="refresh()">
         {{ loading() ? 'Refreshing…' : 'Refresh' }}
@@ -22,11 +22,14 @@
   <div class="summary-card">
     <div class="summary-stat">
       <span class="summary-label">Active now</span>
-      <span class="summary-value">{{ filteredActiveCount() }}</span>
+      <span class="summary-value">{{ activeCount() }}</span>
     </div>
     <div class="summary-stat">
       <span class="summary-label">Shown</span>
       <span class="summary-value">{{ filteredTasks().length }}</span>
+      @if (filteredActiveCount() !== activeCount()) {
+        <span class="summary-meta">({{ filteredActiveCount() }} running in view)</span>
+      }
     </div>
     <div class="summary-stat summary-stat--heap">
       <span class="summary-label">Heap memory</span>
@@ -91,7 +94,12 @@
   @if (loading() && tasks().length === 0) {
     <p class="status">Loading…</p>
   } @else if (filteredTasks().length === 0) {
-    <p class="empty-hint">No tasks match the current filters.</p>
+    <p class="empty-hint">
+      No tasks match the current filters.
+      @if (jobTypeFilter() || statusFilter() !== 'all') {
+        Try <strong>All types</strong> and <strong>All</strong> status.
+      }
+    </p>
   } @else {
     <div class="table-wrap">
       <table>

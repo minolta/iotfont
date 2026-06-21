@@ -207,6 +207,15 @@
                     }
                   </td>
                   <td class="col-actions">
+                    <button
+                      type="button"
+                      class="restart-btn"
+                      [disabled]="!row.device.ip?.trim() || isRestarting(row.device.id)"
+                      [title]="restartUrl(row.device.ip) ?? 'No IP'"
+                      (click)="restartDevice(row)"
+                    >
+                      {{ isRestarting(row.device.id) ? 'Restarting…' : 'Restart' }}
+                    </button>
                     @if (row.rawJson) {
                       <button type="button" class="json-btn" (click)="toggleRaw(row.device.id)">
                         {{ expandedId() === row.device.id ? 'Hide' : 'JSON' }}

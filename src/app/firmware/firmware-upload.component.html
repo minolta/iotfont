@@ -1,0 +1,157 @@
+<div class="page page--wide">
+  <a routerLink="/devices" class="back">← Back to devices</a>
+  <h1>Firmware upload</h1>
+  <p class="hint">
+    Upload firmware binaries for OTA updates. Devices use the legacy paths
+    <code>/rest/fw/update/</code><code>app</code><code>/</code><code>version</code> and
+    <code>/rest/fw/check/</code><code>app</code><code>/</code><code>version</code> (no login required).
+    Each upload is stored as <code>appname.version</code> with an MD5 checksum.
+  </p>
+
+  @if (errorMessage(); as msg) {
+    <p class="error-banner" role="alert">{{ msg }}</p>
+  }
+
+  <div class="upload-panel">
+    <div class="field">
+      <label for="fw-app-name">App name</label>
+      <input
+        id="fw-app-name"
+        type="text"
+        placeholder="e.g. sensor, pifw"
+        [value]="appName()"
+        [disabled]="submitting()"
+        (input)="onAppNameInput($any($event.target).value)"
+      />
+      @if (checkingLatest()) {
+        <span class="field-hint">Checking latest version…</span>
+      } @else if (appName().trim()) {
+        @if (latestRelease(); as latest) {
+          @if ((latest.ver ?? 0) > 0) {
+            <span class="field-hint">
+              Latest on server: <strong>{{ latest.ver }}</strong>
+              @if (latest.crc) {
+                <span class="mono"> (MD5 {{ latest.crc }})</span>
+              }
+            </span>
+          } @else {
+            <span class="field-hint">No firmware for this app yet — use version 1 or higher.</span>
+          }
+        }
+      } @else {
+        <span class="field-hint">Must match the app name configured on the device.</span>
+      }
+    </div>
+
+    <div class="field">
+      <label for="fw-version">Version</label>
+      <input
+        id="fw-version"
+        type="number"
+        min="0"
+        step="1"
+        [placeholder]="suggestedVersion() != null ? 'e.g. ' + suggestedVersion() : 'e.g. 42'"
+        [value]="version()"
+        [disabled]="submitting()"
+        (input)="onVersionInput($any($event.target).value)"
+      />
+      @if (versionIssue(); as issue) {
+        <span class="field-hint field-hint--warn">{{ issue }}</span>
+      } @else if (suggestedVersion() != null) {
+        <span class="field-hint">Suggested next version: <strong>{{ suggestedVersion() }}</strong></span>
+      } @else {
+        <span class="field-hint">Integer version number; devices only download builds newer than their current version.</span>
+      }
+    </div>
+
+    <div class="field">
+      <label for="fw-file">Firmware file</label>
+      <input
+        #fwFile
+        id="fw-file"
+        type="file"
+        accept=".bin,.hex,.fw,application/octet-stream,*/*"
+        [disabled]="submitting()"
+        (change)="onFileSelected($event)"
+      />
+      @if (selectedFile(); as file) {
+        <span class="field-hint">{{ file.name }} ({{ (file.size / 1024 / 1024) | number: '1.1-2' }} MB)</span>
+      }
+    </div>
+
+    <div class="actions">
+      <button type="button" [disabled]="submitting() || checkingLatest() || !!versionIssue()" (click)="submit()">
+        {{ submitting() ? 'Uploading…' : 'Upload firmware' }}
+      </button>
+    </div>
+  </div>
+
+  @if (uploadResult(); as result) {
+    <section class="result-panel" aria-live="polite">
+      <h2>Upload complete</h2>
+      <dl class="result-meta">
+        <div>
+          <dt>App</dt>
+          <dd>{{ result.app?.name || '—' }}</dd>
+        </div>
+        <div>
+          <dt>Version</dt>
+          <dd>{{ result.ver ?? '—' }}</dd>
+        </div>
+        <div>
+          <dt>MD5</dt>
+          <dd class="mono">{{ result.crc || '—' }}</dd>
+        </div>
+      </dl>
+    </section>
+  }
+
+  <section class="list-panel">
+    <div class="list-header">
+      <h2>Uploaded firmware</h2>
+      <div class="list-search">
+        <input
+          type="search"
+          placeholder="Filter by app name"
+          [value]="searchTerm()"
+          (input)="onSearchInput($any($event.target).value)"
+          (keyup.enter)="applySearch()"
+        />
+        <button type="button" [disabled]="loadingList()" (click)="applySearch()">
+          {{ loadingList() ? 'Loading…' : 'Search' }}
+        </button>
+      </div>
+    </div>
+
+    @if (loadingList() && releases().length === 0) {
+      <p class="hint">Loading…</p>
+    } @else if (releases().length === 0) {
+      <p class="hint">No firmware uploaded yet.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>App</th>
+              <th>Version</th>
+              <th>MD5</th>
+              <th>File</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of releases(); track item.id) {
+              <tr>
+                <td class="mono">{{ item.id }}</td>
+                <td>{{ item.app?.name || '—' }}</td>
+                <td class="mono">{{ item.ver ?? '—' }}</td>
+                <td class="mono">{{ item.crc || '—' }}</td>
+                <td class="mono file-path">{{ item.name || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</div>

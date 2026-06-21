@@ -257,6 +257,22 @@ export function buildDeviceJsonUrl(ip: string): string | null {
   return `http://${trimmed}/`;
 }
 
+export function buildDeviceRestartUrl(ip: string | null | undefined): string | null {
+  const trimmed = ip?.trim() ?? '';
+  if (!trimmed) {
+    return null;
+  }
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      const url = new URL(trimmed.includes('://') ? trimmed : `http://${trimmed}`);
+      return `${url.origin}/restart`;
+    } catch {
+      return null;
+    }
+  }
+  return `http://${trimmed.replace(/\/+$/, '')}/restart`;
+}
+
 export function buildDeviceSetConfigUrl(ip: string | null | undefined): string | null {
   const trimmed = ip?.trim() ?? '';
   if (!trimmed) {

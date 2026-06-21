@@ -10,9 +10,11 @@ services:
     volumes:
       - iot-data:/app/data
       - iot-logs:/app/logs
+      - ${IOT_FW_DIR:-./fw}:/app/fw
       - ${IOT_NETWORK_SCAN_FILE:-./network_scan.json}:/app/ipt/network_scan.json:ro
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      IOT_FW_STORAGE_DIR: /app/fw
       IOT_SEED_TEST_DATA: "false"
       IOT_SECURITY_SEED_ADMIN: "true"
       IOT_DEVICE_IP_SCAN_ENABLED: "true"

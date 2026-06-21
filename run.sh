@@ -5,6 +5,7 @@ cd "$(dirname "$0")"
 NETWORK="${IOT_DOCKER_NETWORK:-iot-net}"
 DB_DIR="${IOT_DB_DIR:-/home/ky/iot/db}"
 LOG_DIR="${IOT_LOG_DIR:-/home/ky/iot/logs}"
+FW_DIR="${IOT_FW_DIR:-/home/ky/iot/fw}"
 NETWORK_SCAN_FILE="${IOT_NETWORK_SCAN_FILE:-/home/ky/iot/network_scan.json}"
 IPT_MOUNT="/app/ipt/network_scan.json"
 
@@ -44,17 +45,17 @@ if [[ "${1:-}" != "run" ]]; then
   fi
 fi
 
-mkdir -p "${DB_DIR}" "${LOG_DIR}" "$(dirname "${NETWORK_SCAN_FILE}")"
+mkdir -p "${DB_DIR}" "${LOG_DIR}" "${FW_DIR}" "$(dirname "${NETWORK_SCAN_FILE}")"
 if [[ ! -f "${NETWORK_SCAN_FILE}" ]]; then
   echo '[]' > "${NETWORK_SCAN_FILE}"
   echo "Created empty IP scan file: ${NETWORK_SCAN_FILE}"
 fi
 if command -v sudo >/dev/null 2>&1; then
-  sudo -n chown -R 1001:1001 "${DB_DIR}" "${LOG_DIR}" 2>/dev/null || true
-  sudo -n chmod -R u+rwX "${DB_DIR}" "${LOG_DIR}" 2>/dev/null || true
+  sudo -n chown -R 1001:1001 "${DB_DIR}" "${LOG_DIR}" "${FW_DIR}" 2>/dev/null || true
+  sudo -n chmod -R u+rwX "${DB_DIR}" "${LOG_DIR}" "${FW_DIR}" 2>/dev/null || true
 else
-  chown -R 1001:1001 "${DB_DIR}" "${LOG_DIR}" 2>/dev/null || true
-  chmod -R u+rwX "${DB_DIR}" "${LOG_DIR}" 2>/dev/null || true
+  chown -R 1001:1001 "${DB_DIR}" "${LOG_DIR}" "${FW_DIR}" 2>/dev/null || true
+  chmod -R u+rwX "${DB_DIR}" "${LOG_DIR}" "${FW_DIR}" 2>/dev/null || true
 fi
 
 echo "Stopping old containers..."
@@ -73,8 +74,10 @@ docker run -d \
   -p 888:8080 \
   -v "${DB_DIR}:/app/data" \
   -v "${LOG_DIR}:/app/logs" \
+  -v "${FW_DIR}:/app/fw" \
   -v "${NETWORK_SCAN_FILE}:${IPT_MOUNT}:ro" \
   -e SPRING_PROFILES_ACTIVE=prod \
+  -e IOT_FW_STORAGE_DIR=/app/fw \
   -e IOT_SEED_TEST_DATA=false \
   -e IOT_SECURITY_SEED_ADMIN=true \
   -e IOT_SECURITY_ADMIN_USERNAME=admin \

@@ -76,7 +76,7 @@ export class TaskRunningComponent {
     ])
       .pipe(
         switchMap(([enabled, , jobType]) => {
-          const poll$ = enabled ? timer(0, 5000) : timer(0);
+          const poll$ = enabled ? timer(0, 2000) : timer(0);
           return poll$.pipe(switchMap(() => this.loadRunning(jobType)));
         }),
         takeUntilDestroyed(),

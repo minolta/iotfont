@@ -20,11 +20,12 @@ import {
   timer,
 } from 'rxjs';
 
-import { displayValue, entityLabel } from '../shared/format.util';
+import { displayValue, entityLabel, formatHttpError } from '../shared/format.util';
 import type { Device } from './device.model';
 import {
   AUTO_REFRESH_INTERVALS,
   buildDeviceJsonUrl,
+  buildDeviceRestartUrl,
   buildDeviceSetConfigUrl,
   columnHeaderLabel,
   createDeviceInfoGroup,
@@ -76,9 +77,11 @@ export class DeviceInfoComponent {
   readonly autoRefreshSeconds = signal(loadAutoRefreshSettings().seconds);
   readonly refreshIntervals = AUTO_REFRESH_INTERVALS;
   readonly toastMessage = signal<string | null>(null);
+  readonly restartingIds = signal<Set<number>>(new Set());
   readonly displayValue = displayValue;
   readonly columnHeaderLabel = columnHeaderLabel;
   readonly setConfigUrl = buildDeviceSetConfigUrl;
+  readonly restartUrl = buildDeviceRestartUrl;
 
   readonly devices = toSignal(
     this.deviceService.list().pipe(
@@ -316,6 +319,43 @@ export class DeviceInfoComponent {
 
   toggleRaw(deviceId: number): void {
     this.expandedId.update((current) => (current === deviceId ? null : deviceId));
+  }
+
+  isRestarting(deviceId: number): boolean {
+    return this.restartingIds().has(deviceId);
+  }
+
+  restartDevice(row: DeviceLiveRow): void {
+    const ip = row.device.ip?.trim() ?? '';
+    if (!ip) {
+      this.showToast('No IP configured.');
+      return;
+    }
+    if (!window.confirm(`Restart device "${row.label}" at ${ip}?`)) {
+      return;
+    }
+
+    const deviceId = row.device.id;
+    this.restartingIds.update((ids) => new Set(ids).add(deviceId));
+    this.deviceInfoService
+      .restart(deviceId)
+      .pipe(
+        finalize(() => {
+          this.restartingIds.update((ids) => {
+            const next = new Set(ids);
+            next.delete(deviceId);
+            return next;
+          });
+        }),
+      )
+      .subscribe({
+        next: (result) => {
+          this.showToast(result.message?.trim() || 'Restart sent.');
+        },
+        error: (err: unknown) => {
+          this.showToast(formatHttpError(err, 'Restart failed.'));
+        },
+      });
   }
 
   rawJsonText(row: DeviceLiveRow): string {
