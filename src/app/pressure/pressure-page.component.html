@@ -1,0 +1,198 @@
+<div class="pressure-page">
+  <div class="page-header">
+    <div>
+      <h1>PSI Pressure Monitoring</h1>
+      <p class="hint">Pressure readings saved by readpressure jobs or added manually.</p>
+    </div>
+    <div class="header-actions">
+      <label class="auto-refresh-toggle">
+        <input
+          type="checkbox"
+          [checked]="autoRefreshEnabled()"
+          (change)="toggleAutoRefresh($any($event.target).checked)"
+        />
+        Auto refresh (5s)
+      </label>
+      <button
+        type="button"
+        class="refresh-btn"
+        [disabled]="readingsLoading() && readings().length === 0"
+        (click)="refresh()"
+      >
+        {{ readingsLoading() && readings().length === 0 ? 'Refreshing…' : 'Refresh' }}
+      </button>
+    </div>
+    <div class="device-field">
+      <label class="label-text" for="pressure-device">Device</label>
+      <select
+        id="pressure-device"
+        [value]="deviceId() ?? ''"
+        [disabled]="devicesLoading() || devices().length === 0"
+        (change)="onDeviceChange($any($event.target).value)"
+      >
+        @if (devicesLoading()) {
+          <option value="">Loading devices…</option>
+        } @else if (devices().length === 0) {
+          <option value="">No devices</option>
+        } @else {
+          @for (item of devices(); track item.id) {
+            <option [value]="item.id">{{ deviceOptionLabel(item) }}</option>
+          }
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (devicesError(); as de) {
+    <p class="error" role="alert">{{ de }}</p>
+  }
+
+  <div class="cards-container">
+    <section class="latest-card" aria-labelledby="latest-heading">
+      <h2 id="latest-heading">Latest reading — {{ selectedDeviceLabel() }}</h2>
+      @if (latestLoading()) {
+        <p class="status">Loading latest…</p>
+      } @else if (latest(); as reading) {
+        <div class="latest-display">
+          <div class="psi-value">
+            <span class="value">{{ formatReading(reading.psi) }}</span>
+            <span class="unit">PSI</span>
+          </div>
+          <div class="read-time">Read time: {{ formatDate(reading.readtime ?? null) }}</div>
+        </div>
+      } @else if (latestError(); as le) {
+        <p class="muted">{{ le }}</p>
+      }
+    </section>
+
+    <section class="manual-add-card" aria-labelledby="add-heading">
+      <h2 id="add-heading">Save New PSI Reading</h2>
+      <form [formGroup]="addForm" (ngSubmit)="onSubmit()" class="add-form">
+        <div class="input-group">
+          <label class="label-text" for="new-psi">PSI Value</label>
+          <input
+            id="new-psi"
+            type="number"
+            step="0.01"
+            placeholder="e.g. 32.5"
+            formControlName="psi"
+            [disabled]="deviceId() == null || addLoading()"
+          />
+        </div>
+        <button
+          type="submit"
+          class="save-btn"
+          [disabled]="addForm.invalid || deviceId() == null || addLoading()"
+        >
+          {{ addLoading() ? 'Saving…' : 'Save' }}
+        </button>
+      </form>
+
+      @if (addSuccess()) {
+        <p class="success-banner success-inline" role="alert">PSI reading saved successfully.</p>
+      }
+      @if (addError(); as ae) {
+        <p class="error error-inline" role="alert">{{ ae }}</p>
+      }
+    </section>
+  </div>
+
+  <app-pressure-chart
+    [readings]="readings()"
+    [loading]="readingsLoading()"
+    [paginated]="!useDateFilter()"
+  />
+
+  <section class="readings-section" aria-labelledby="readings-heading">
+    <div class="section-header">
+      <h2 id="readings-heading">Reading history</h2>
+      @if (readingsLoading()) {
+        <span class="status" aria-live="polite">Loading…</span>
+      }
+    </div>
+
+    <div class="filter-bar">
+      <div class="date-field">
+        <label class="label-text" for="pressure-start">From</label>
+        <input
+          id="pressure-start"
+          type="datetime-local"
+          [value]="startDate()"
+          (input)="onStartDateInput($any($event.target).value)"
+        />
+      </div>
+      <div class="date-field">
+        <label class="label-text" for="pressure-end">To</label>
+        <input
+          id="pressure-end"
+          type="datetime-local"
+          [value]="endDate()"
+          (input)="onEndDateInput($any($event.target).value)"
+        />
+      </div>
+      <button type="button" class="filter-btn" (click)="applyDateFilter()">Apply range</button>
+      @if (useDateFilter()) {
+        <button type="button" class="clear-btn" (click)="clearDateFilter()">Clear range</button>
+      }
+    </div>
+
+    @if (readingsError(); as re) {
+      <p class="error" role="alert">{{ re }}</p>
+    }
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Pressure (PSI)</th>
+            <th>Read time</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (readingsLoading() && readings().length === 0) {
+            <tr>
+              <td class="empty" colspan="3">Loading…</td>
+            </tr>
+          }
+          @for (reading of readings(); track reading.id) {
+            <tr>
+              <td class="mono">{{ reading.id }}</td>
+              <td class="mono highlight-psi">{{ formatReading(reading.psi) }}</td>
+              <td class="mono">{{ formatDate(reading.readtime ?? null) }}</td>
+            </tr>
+          } @empty {
+            @if (!readingsLoading()) {
+              <tr>
+                <td class="empty" colspan="3">No readings found.</td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (!useDateFilter()) {
+      <div class="pager">
+        <button type="button" class="pager-btn" [disabled]="page() <= 0" (click)="previousPage()">
+          Previous
+        </button>
+        <span class="pager-label">Page {{ page() + 1 }}</span>
+        <button
+          type="button"
+          class="pager-btn"
+          [disabled]="readings().length < pageSize"
+          (click)="nextPage()"
+        >
+          Next
+        </button>
+      </div>
+    }
+  </section>
+
+  <p class="footer-links">
+    <a routerLink="/devices">All devices</a>
+    ·
+    <a routerLink="/tasks">Running tasks</a>
+  </p>
+</div>

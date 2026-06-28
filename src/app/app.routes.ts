@@ -119,6 +119,16 @@ export const routes: Routes = [
           import('./readv/readv-page.component').then((m) => m.ReadvPageComponent),
       },
       {
+        path: 'pressure',
+        loadComponent: () =>
+          import('./pressure/pressure-page.component').then((m) => m.PressurePageComponent),
+      },
+      {
+        path: 'devices/:id/pressure',
+        loadComponent: () =>
+          import('./pressure/pressure-page.component').then((m) => m.PressurePageComponent),
+      },
+      {
         path: 'tasks',
         title: 'iot-task',
         loadComponent: () =>

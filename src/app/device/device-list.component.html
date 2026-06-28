@@ -94,6 +94,7 @@
               <a [routerLink]="['/devices/info']" [queryParams]="{ add: device.id }" class="view-link">Info</a>
               <a [routerLink]="['/devices', device.id, 'humidity']" class="view-link">Humidity</a>
               <a [routerLink]="['/readv']" [queryParams]="{ deviceId: device.id }" class="view-link">ReadV</a>
+              <a [routerLink]="['/devices', device.id, 'pressure']" class="view-link">PSI</a>
               <a [routerLink]="['/jobs']" [queryParams]="{ deviceId: device.id }" class="view-link">Jobs</a>
               <a [routerLink]="['/devices', device.id, 'edit']" class="edit-link">Edit</a>
               <button

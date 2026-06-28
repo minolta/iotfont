@@ -64,6 +64,9 @@ export class FirmwareUploadComponent implements OnInit {
       )
       .subscribe((release) => {
         this.latestRelease.set(release);
+        if (this.appName().trim()) {
+          this.version.set(String(this.nextVersionForRelease(release)));
+        }
         this.validateVersion();
       });
   }
@@ -96,11 +99,15 @@ export class FirmwareUploadComponent implements OnInit {
   }
 
   suggestedVersion(): number | null {
-    const latest = this.latestRelease()?.ver ?? 0;
     if (this.checkingLatest() || !this.appName().trim()) {
       return null;
     }
-    return latest + 1;
+    return this.nextVersionForRelease(this.latestRelease());
+  }
+
+  private nextVersionForRelease(release: FwRelease | null): number {
+    const latest = release?.ver ?? 0;
+    return latest > 0 ? latest + 1 : 1;
   }
 
   submit(): void {
@@ -141,8 +148,7 @@ export class FirmwareUploadComponent implements OnInit {
           this.uploadResult.set(release);
           this.latestRelease.set(release);
           this.clearSelectedFile();
-          const uploadedVer = release.ver ?? ver;
-          this.version.set(String(uploadedVer + 1));
+          this.version.set(String(this.nextVersionForRelease(release)));
           this.loadReleases();
           this.validateVersion();
         },
