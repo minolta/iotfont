@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
-import { formatHttpError } from '../shared/format.util';
+import { formatHttpError, jobLinkRel, jobLinkTarget } from '../shared/format.util';
 import type { JobExportRecord } from './job-export.util';
 import type { JobImportResult } from './job-import.model';
 import { JobService } from './job.service';
@@ -24,6 +24,8 @@ export class JobImportComponent {
   readonly parseError = signal<string | null>(null);
   readonly errorMessage = signal<string | null>(null);
   readonly result = signal<JobImportResult | null>(null);
+  readonly jobLinkTarget = jobLinkTarget;
+  readonly jobLinkRel = jobLinkRel;
 
   onJsonInput(value: string): void {
     this.jsonText.set(value);

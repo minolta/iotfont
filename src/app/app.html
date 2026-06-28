@@ -9,6 +9,7 @@
             routerLinkActive="active"
             [routerLinkActiveOptions]="{ exact: false }"
             class="nav-group-label"
+            target="devices"
             >Devices</a
           >
           <div class="nav-group-menu">
@@ -16,12 +17,14 @@
               routerLink="/devices"
               routerLinkActive="active"
               [routerLinkActiveOptions]="{ exact: true }"
+              target="devices"
               >All devices</a
             >
             <a routerLink="/devices/new" routerLinkActive="active">Add device</a>
             <a routerLink="/devices/import" routerLinkActive="active">Import devices</a>
             <a routerLink="/devices/firmware" routerLinkActive="active">Firmware upload</a>
             <a routerLink="/devices/info" routerLinkActive="active">Live info</a>
+            <a routerLink="/devices/gpio-call" routerLinkActive="active">GPIO call</a>
             <a routerLink="/readv" routerLinkActive="active">ReadV</a>
           </div>
         </div>
@@ -31,6 +34,7 @@
             routerLinkActive="active"
             [routerLinkActiveOptions]="{ exact: false }"
             class="nav-group-label"
+            target="jobs"
             >Jobs</a
           >
           <div class="nav-group-menu">
@@ -38,6 +42,7 @@
               routerLink="/jobs"
               routerLinkActive="active"
               [routerLinkActiveOptions]="{ exact: false }"
+              target="jobs"
               >All jobs</a
             >
             <a routerLink="/jobs/new" routerLinkActive="active">Add job</a>
@@ -59,7 +64,7 @@
             <a routerLink="/job-groups/new" routerLinkActive="active">Add job group</a>
           </div>
         </div>
-        <a routerLink="/tasks" routerLinkActive="active">Tasks</a>
+        <a routerLink="/tasks" routerLinkActive="active" target="tasks">Tasks</a>
       </nav>
       <div class="header-actions">
         <div class="api-time" [class.api-time--offline]="apiTimeOffline()">

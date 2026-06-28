@@ -1,0 +1,6 @@
+@echo off
+echo Starting Backend API (Spring Boot)...
+start "Backend API" cmd /k "cd /d F:\src\piproject\api\iot && mvnw.cmd spring-boot:run"
+
+echo Starting Frontend UI (Angular)...
+start "Frontend UI" cmd /k "cd /d F:\src\piproject\font\iotfont && npm.cmd start"

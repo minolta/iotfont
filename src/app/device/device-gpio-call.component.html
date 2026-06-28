@@ -1,0 +1,151 @@
+<section class="crud-page">
+  <header class="page-header">
+    <div>
+      <h1>GPIO call</h1>
+      <p class="page-lead">
+        Call a device directly, e.g.
+        <code>http://192.168.88.19/run?port=D8&amp;value=1&amp;delay=200</code>
+      </p>
+    </div>
+    <a routerLink="/devices" class="secondary-btn">Back to devices</a>
+  </header>
+
+  @if (devicesError()) {
+    <p class="error-banner" role="alert">{{ devicesError() }}</p>
+  }
+
+  <form class="gpio-form" (submit)="$event.preventDefault(); callGpio()">
+    <div class="field">
+      <label for="gpio-device">Device</label>
+      <select
+        id="gpio-device"
+        [value]="deviceId()"
+        [disabled]="loadingDevices() || calling()"
+        (change)="onDeviceChange($any($event.target).value)"
+      >
+        <option value="">Select device…</option>
+        @for (device of devices(); track device.id) {
+          <option [value]="device.id">
+            #{{ device.id }} — {{ deviceLabel(device) }}
+            @if (device.ip) {
+              ({{ device.ip }})
+            }
+          </option>
+        }
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="gpio-port">GPIO port</label>
+      <select
+        id="gpio-port"
+        [value]="port()"
+        [disabled]="calling() || useCustomPort()"
+        (change)="onPortChange($any($event.target).value)"
+      >
+        @for (option of portOptions(); track option) {
+          <option [value]="option">{{ option }}</option>
+        }
+      </select>
+      @if (loadingPorts()) {
+        <span class="field-hint">Loading ports from device…</span>
+      }
+    </div>
+
+    <div class="field checkbox-field">
+      <input
+        id="gpio-custom-port"
+        type="checkbox"
+        [checked]="useCustomPort()"
+        [disabled]="calling()"
+        (change)="onCustomPortToggle($any($event.target).checked)"
+      />
+      <label for="gpio-custom-port">Custom port name</label>
+    </div>
+
+    @if (useCustomPort()) {
+      <div class="field">
+        <label for="gpio-port-custom">Custom GPIO port</label>
+        <input
+          id="gpio-port-custom"
+          type="text"
+          [value]="customPort()"
+          placeholder="D8"
+          spellcheck="false"
+          autocomplete="off"
+          [disabled]="calling()"
+          (input)="customPort.set($any($event.target).value)"
+        />
+      </div>
+    }
+
+    <div class="field-row">
+      <div class="field">
+        <label for="gpio-value">Value</label>
+        <select
+          id="gpio-value"
+          [value]="value()"
+          [disabled]="calling()"
+          (change)="value.set($any($event.target).value)"
+        >
+          <option value="1">1 (on)</option>
+          <option value="0">0 (off)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="gpio-delay">Delay (s)</label>
+        <input
+          id="gpio-delay"
+          type="number"
+          min="0"
+          step="1"
+          [value]="delay()"
+          [disabled]="calling()"
+          (input)="delay.set($any($event.target).value)"
+        />
+      </div>
+
+      <div class="field">
+        <label for="gpio-wait">Wait (s)</label>
+        <input
+          id="gpio-wait"
+          type="number"
+          min="0"
+          step="1"
+          placeholder="optional"
+          [value]="wait()"
+          [disabled]="calling()"
+          (input)="wait.set($any($event.target).value)"
+        />
+      </div>
+    </div>
+
+    <div class="preview-box">
+      <span class="preview-label">URL preview</span>
+      @if (previewUrl()) {
+        <code class="preview-url">{{ previewUrl() }}</code>
+      } @else {
+        <span class="muted">Select device and port to preview URL.</span>
+      }
+    </div>
+
+    @if (callError()) {
+      <p class="error-banner" role="alert">{{ callError() }}</p>
+    }
+
+    @if (lastResult(); as result) {
+      <div class="result-box" [class.result-ok]="result.ok" [class.result-fail]="!result.ok">
+        <strong>{{ result.ok ? 'Call succeeded' : 'Call failed' }}</strong>
+        <code>{{ result.url }}</code>
+        @if (result.message) {
+          <span>{{ result.message }}</span>
+        }
+      </div>
+    }
+
+    <button type="submit" class="primary-btn" [disabled]="calling() || !selectedDevice() || !effectivePort()">
+      {{ calling() ? 'Calling…' : 'Call URL' }}
+    </button>
+  </form>
+</section>

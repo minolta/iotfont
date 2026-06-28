@@ -48,9 +48,15 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./device/device-info.component').then((m) => m.DeviceInfoComponent),
       },
+      {
+        path: 'devices/gpio-call',
+        loadComponent: () =>
+          import('./device/device-gpio-call.component').then((m) => m.DeviceGpioCallComponent),
+      },
       { path: 'devices/:id/info', redirectTo: 'devices/info', pathMatch: 'full' },
       {
         path: 'devices',
+        title: 'iot-devices',
         loadComponent: () =>
           import('./device/device-list.component').then((m) => m.DeviceListComponent),
       },
@@ -104,6 +110,7 @@ export const routes: Routes = [
       },
       {
         path: 'jobs',
+        title: 'iot-jobs',
         loadComponent: () => import('./job/job-list.component').then((m) => m.JobListComponent),
       },
       {
@@ -113,6 +120,7 @@ export const routes: Routes = [
       },
       {
         path: 'tasks',
+        title: 'iot-task',
         loadComponent: () =>
           import('./task/task-running.component').then((m) => m.TaskRunningComponent),
       },

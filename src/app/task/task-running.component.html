@@ -118,7 +118,7 @@
           @for (task of filteredTasks(); track task.jobId) {
             <tr>
               <td>
-                <a [routerLink]="['/jobs', task.jobId, 'edit']" class="task-link">
+                <a [routerLink]="['/jobs', task.jobId, 'edit']" [target]="'job-' + task.jobId" class="task-link">
                   {{ taskLabel(task) }}
                 </a>
               </td>
@@ -145,7 +145,13 @@
                   </button>
                 }
                 @if (task.deviceId) {
-                  <a [routerLink]="['/jobs']" [queryParams]="{ deviceId: task.deviceId }" class="view-link">
+                  <a
+                    [routerLink]="['/jobs']"
+                    [queryParams]="{ deviceId: task.deviceId }"
+                    [attr.target]="jobLinkTarget()"
+                    [attr.rel]="jobLinkRel()"
+                    class="view-link"
+                  >
                     Jobs
                   </a>
                 }

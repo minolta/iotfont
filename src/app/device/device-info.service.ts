@@ -6,6 +6,19 @@ import { IOT_API_BASE_URL } from '../api/iot-api-base-url.token';
 
 import type { DeviceLiveJson } from './device-info.model';
 
+export interface GpioRunRequest {
+  port: string;
+  value?: number;
+  delay?: number;
+  wait?: number;
+}
+
+export interface GpioRunResponse {
+  ok: boolean;
+  url: string;
+  message?: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class DeviceInfoService {
   private readonly http = inject(HttpClient);
@@ -17,5 +30,9 @@ export class DeviceInfoService {
 
   restart(deviceId: number): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.rootUrl}/restart/${deviceId}`, null);
+  }
+
+  runGpio(deviceId: number, request: GpioRunRequest): Observable<GpioRunResponse> {
+    return this.http.post<GpioRunResponse>(`${this.rootUrl}/gpio-run/${deviceId}`, request);
   }
 }

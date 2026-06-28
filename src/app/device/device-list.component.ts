@@ -38,7 +38,9 @@ export class DeviceListComponent {
     { initialValue: null as string | null },
   );
 
-  readonly searchTerm = signal('');
+  readonly searchTerm = signal(
+    (typeof localStorage !== 'undefined' && localStorage.getItem('iot-device-search-keyword')) || '',
+  );
   readonly refreshNonce = signal(0);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
@@ -74,6 +76,9 @@ export class DeviceListComponent {
 
   onSearchInput(value: string): void {
     this.searchTerm.set(value);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('iot-device-search-keyword', value);
+    }
   }
 
   exportDevices(): void {

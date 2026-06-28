@@ -17,7 +17,7 @@ import {
 } from 'rxjs';
 
 import { JobTypeService } from '../job-type/job-type.service';
-import { displayValue, formatDateTime, formatHttpError } from '../shared/format.util';
+import { displayValue, formatDateTime, formatHttpError, jobLinkRel, jobLinkTarget } from '../shared/format.util';
 import type { HeapMemoryInfo, RunningTask } from './task.model';
 import { TaskService } from './task.service';
 
@@ -47,6 +47,8 @@ export class TaskRunningComponent {
   readonly killError = signal<string | null>(null);
   readonly displayValue = displayValue;
   readonly formatDateTime = formatDateTime;
+  readonly jobLinkTarget = jobLinkTarget;
+  readonly jobLinkRel = jobLinkRel;
 
   readonly jobTypes = toSignal(
     this.jobTypeService.list().pipe(catchError(() => of([]))),

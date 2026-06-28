@@ -119,7 +119,11 @@
                   <tr>
                     <td class="mono">{{ job.id }}</td>
                     <td>
-                      <a [routerLink]="['/jobs', job.id, 'edit']">{{ job.name?.trim() || '—' }}</a>
+                      <a
+                        [routerLink]="['/jobs', job.id, 'edit']"
+                        [attr.target]="jobLinkTarget()"
+                        [attr.rel]="jobLinkRel()"
+                      >{{ job.name?.trim() || '—' }}</a>
                     </td>
                     <td class="mono">{{ job.device_id ?? job.device?.id ?? '—' }}</td>
                     <td>{{ job.jobtype?.name?.trim() || job.jobtype_id || '—' }}</td>

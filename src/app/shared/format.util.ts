@@ -101,3 +101,15 @@ export function entityLabel(
 ): string {
   return name?.trim() || code?.trim() || `#${id}`;
 }
+
+/** New tab on desktop (mouse); same tab on mobile / touch. */
+export function jobLinkTarget(): '_blank' | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  return window.matchMedia('(hover: hover) and (pointer: fine)').matches ? '_blank' : null;
+}
+
+export function jobLinkRel(): 'noopener noreferrer' | null {
+  return jobLinkTarget() ? 'noopener noreferrer' : null;
+}

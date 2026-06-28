@@ -16,6 +16,8 @@ import {
   formatHumidityRange,
   formatHttpError,
   formatTemperatureRange,
+  jobLinkRel,
+  jobLinkTarget,
 } from '../shared/format.util';
 import { downloadJsonFile, timestampForFilename } from '../shared/download.util';
 import { jobsToExportPayload } from './job-export.util';
@@ -48,7 +50,9 @@ export class JobListComponent {
     { initialValue: null as string | null },
   );
 
-  readonly searchTerm = signal('');
+  readonly searchTerm = signal(
+    (typeof localStorage !== 'undefined' && localStorage.getItem('iot-job-search-keyword')) || '',
+  );
   readonly deviceFilter = signal(this.route.snapshot.queryParamMap.get('deviceId') ?? '');
   readonly refreshNonce = signal(0);
   readonly loading = signal(false);
@@ -114,16 +118,24 @@ export class JobListComponent {
   );
 
   readonly displayValue = displayValue;
+  readonly jobLinkTarget = jobLinkTarget;
+  readonly jobLinkRel = jobLinkRel;
   readonly formatHumidityRange = formatHumidityRange;
   readonly formatTemperatureRange = formatTemperatureRange;
 
   onSearchInput(value: string): void {
     this.searchTerm.set(value);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('iot-job-search-keyword', value);
+    }
   }
 
   onDeviceFilterChange(value: string): void {
     this.deviceFilter.set(value);
     this.searchTerm.set('');
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('iot-job-search-keyword', '');
+    }
   }
 
   deviceName(job: Job): string {

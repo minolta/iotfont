@@ -96,7 +96,12 @@
           <tr>
             <td class="mono">{{ job.id }}</td>
             <td>
-              <a [routerLink]="['/jobs', job.id, 'edit']" class="name-link">
+              <a
+                [routerLink]="['/jobs', job.id, 'edit']"
+                [attr.target]="jobLinkTarget()"
+                [attr.rel]="jobLinkRel()"
+                class="name-link"
+              >
                 {{ displayValue(job.name) }}
               </a>
             </td>
