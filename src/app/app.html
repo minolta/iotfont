@@ -69,7 +69,7 @@
       </nav>
       <div class="header-actions">
         <div class="api-time" [class.api-time--offline]="apiTimeOffline()">
-          <span class="api-time-label">API time</span>
+          <span class="api-time-label">API time @if (apiVersion()) { (v{{ apiVersion() }}) }</span>
           <time class="api-time-value">{{ apiTime() }}</time>
         </div>
         <div class="user-menu">

@@ -7,6 +7,7 @@ import { IOT_API_BASE_URL } from '../api/iot-api-base-url.token';
 /** Matches `me.pixka.iot.o.ServerTimeResponse`. */
 export interface ServerTimeResponse {
   now: string;
+  version: string;
 }
 
 @Injectable({ providedIn: 'root' })

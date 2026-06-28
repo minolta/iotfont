@@ -18,6 +18,7 @@ export class App {
 
   readonly apiTime = signal('—');
   readonly apiTimeOffline = signal(false);
+  readonly apiVersion = signal('');
   readonly currentUser = this.authService.currentUser;
 
   private offsetMs = 0;
@@ -57,6 +58,9 @@ export class App {
       .subscribe((response) => {
         if (!response?.now) {
           return;
+        }
+        if (response.version) {
+          this.apiVersion.set(response.version);
         }
         const serverMs = new Date(response.now).getTime();
         if (Number.isNaN(serverMs)) {
