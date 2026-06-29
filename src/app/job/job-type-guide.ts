@@ -111,6 +111,20 @@ const GUIDES: Record<string, JobTypeGuide> = {
     requiredFields: ['Device'],
     optionalFields: ['Sensors ประเภท pressure', 'Read path', 'ช่วงเวลารัน'],
   },
+  vtask: {
+    summary: 'อ่านแรงดัน/vbatt จาก sensor แล้วสั่ง GPIO เมื่อค่าอยู่ในช่วงที่กำหนด',
+    howItWorks:
+      'ตรวจเวลา → อ่านแรงดันจาก sensor → ถ้าอยู่ระหว่าง Min–Max จะเรียก http://device-ip/run?port=D5&value=1&delay=runtime บน GPIO แต่ละตัว',
+    requiredFields: ['Device'],
+    optionalFields: [
+      'Min/Max voltage (V) — ว่าง = รับทุกค่า',
+      'Sensors — ถ้าไม่ใส่จะอ่านจาก device ของ job',
+      'GPIO ports',
+      'multi / sametime ใน Description',
+      'Runtime / Wait time ของ job หรือแต่ละ port',
+      'ช่วงเวลารัน',
+    ],
+  },
   tempwork: {
     summary: 'อ่านอุณหภูมิจาก sensor แล้วสั่ง GPIO เมื่อค่าอยู่ในช่วงที่กำหนด',
     howItWorks:
@@ -219,6 +233,11 @@ export function jobTypeUsesHumidityRange(name: string | null | undefined): boole
 export function jobTypeUsesTemperatureRange(name: string | null | undefined): boolean {
   const key = normalizeJobTypeName(name);
   return key === 'tempwork';
+}
+
+export function jobTypeUsesVoltageRange(name: string | null | undefined): boolean {
+  const key = normalizeJobTypeName(name);
+  return key === 'vtask';
 }
 
 export function jobTypeUsesDescriptionSyntax(name: string | null | undefined): boolean {

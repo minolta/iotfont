@@ -109,6 +109,8 @@ export class JobService {
       pump: null,
       tlow: this.toNullableDecimal(value.tlow),
       thigh: this.toNullableDecimal(value.thigh),
+      vlow: this.toNullableDecimal(value.vlow),
+      vhigh: this.toNullableDecimal(value.vhigh),
       priority: this.toNullableInt(value.priority) ?? 0,
       ports: value.ports.map((port, index) => this.toPortPayload(port, index)),
       pumps: value.pumps.map((pump, index) => this.toPumpPayload(pump, index)),

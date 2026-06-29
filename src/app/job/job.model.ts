@@ -35,6 +35,10 @@ export interface Job {
   tlow: number | null;
   /** Maximum temperature (°C) to trigger GPIO ports */
   thigh: number | null;
+  /** Minimum voltage/vbatt to trigger GPIO ports */
+  vlow: number | null;
+  /** Maximum voltage/vbatt to trigger GPIO ports */
+  vhigh: number | null;
   priority: number | null;
   ports?: JobPort[] | null;
   pumps?: JobPump[] | null;
@@ -59,6 +63,8 @@ export interface JobFormValue {
   hhigh: string | number | null;
   tlow: string | number | null;
   thigh: string | number | null;
+  vlow: string | number | null;
+  vhigh: string | number | null;
   priority: string | number | null;
   ports: JobPortFormValue[];
   pumps: JobPumpFormValue[];
@@ -70,3 +76,6 @@ export const HUMIDITY_JOB_TYPE_NAMES = ['humidity', 'runhbyd1', 'readhumidity'] 
 
 /** Job type names that use temperature range checks on the backend. */
 export const TEMPERATURE_JOB_TYPE_NAMES = ['readht', 'readh/t', 'temperature'] as const;
+
+/** Job type names that use voltage/vbatt range checks on the backend. */
+export const VTASK_JOB_TYPE_NAMES = ['vtask'] as const;

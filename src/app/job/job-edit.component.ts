@@ -20,6 +20,7 @@ import {
   jobTypeUsesDescriptionSyntax,
   jobTypeUsesHumidityRange,
   jobTypeUsesTemperatureRange,
+  jobTypeUsesVoltageRange,
 } from './job-type-guide';
 import { JobTypeGuidePanelComponent } from './job-type-guide-panel.component';
 import { JobService } from './job.service';
@@ -87,6 +88,8 @@ export class JobEditComponent {
     hhigh: [''],
     tlow: [''],
     thigh: [''],
+    vlow: [''],
+    vhigh: [''],
     priority: ['0'],
     ports: this.fb.array([]),
     pumps: this.fb.array([]),
@@ -119,6 +122,8 @@ export class JobEditComponent {
   readonly showHumidityRange = computed(() => jobTypeUsesHumidityRange(this.selectedJobType()?.name));
 
   readonly showTemperatureRange = computed(() => jobTypeUsesTemperatureRange(this.selectedJobType()?.name));
+
+  readonly showVoltageRange = computed(() => jobTypeUsesVoltageRange(this.selectedJobType()?.name));
 
   readonly descriptionSyntaxHint = computed(() => {
     const jobType = this.selectedJobType();
@@ -211,6 +216,8 @@ export class JobEditComponent {
           hhigh: job.hhigh != null ? String(job.hhigh) : '',
           tlow: job.tlow != null ? String(job.tlow) : '',
           thigh: job.thigh != null ? String(job.thigh) : '',
+          vlow: job.vlow != null ? String(job.vlow) : '',
+          vhigh: job.vhigh != null ? String(job.vhigh) : '',
           priority: job.priority != null ? String(job.priority) : '0',
         });
         this.setPortsFromJob(job);
@@ -274,6 +281,8 @@ export class JobEditComponent {
         hhigh: value.hhigh ?? '',
         tlow: value.tlow ?? '',
         thigh: value.thigh ?? '',
+        vlow: value.vlow ?? '',
+        vhigh: value.vhigh ?? '',
         priority: value.priority ?? '0',
         ports: readPortFormValues(this.portsFormArray.getRawValue()),
         pumps: readPumpFormValues(this.pumpsFormArray.getRawValue()),

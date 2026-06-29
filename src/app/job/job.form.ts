@@ -25,6 +25,8 @@ export function jobToFormValue(job: Job, overrides: Partial<JobFormValue> = {}):
     hhigh: job.hhigh != null ? job.hhigh : '',
     tlow: job.tlow != null ? job.tlow : '',
     thigh: job.thigh != null ? job.thigh : '',
+    vlow: job.vlow != null ? job.vlow : '',
+    vhigh: job.vhigh != null ? job.vhigh : '',
     priority: job.priority != null ? job.priority : '0',
     ports: jobPortsToFormValues(job.ports),
     pumps: jobPumpsToFormValues(job),

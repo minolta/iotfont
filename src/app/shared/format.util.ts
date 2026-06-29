@@ -90,6 +90,22 @@ export function formatTemperatureRange(
   return `≤ ${thigh}°C`;
 }
 
+export function formatVoltageRange(
+  vlow: number | null | undefined,
+  vhigh: number | null | undefined,
+): string {
+  if (vlow == null && vhigh == null) {
+    return '—';
+  }
+  if (vlow != null && vhigh != null) {
+    return `${vlow}–${vhigh}V`;
+  }
+  if (vlow != null) {
+    return `≥ ${vlow}V`;
+  }
+  return `≤ ${vhigh}V`;
+}
+
 export function displayValue(value: string | null | undefined): string {
   return value?.trim() || '—';
 }

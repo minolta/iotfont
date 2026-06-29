@@ -16,6 +16,7 @@ import {
   formatHumidityRange,
   formatHttpError,
   formatTemperatureRange,
+  formatVoltageRange,
   jobLinkRel,
   jobLinkTarget,
 } from '../shared/format.util';
@@ -122,6 +123,7 @@ export class JobListComponent {
   readonly jobLinkRel = jobLinkRel;
   readonly formatHumidityRange = formatHumidityRange;
   readonly formatTemperatureRange = formatTemperatureRange;
+  readonly formatVoltageRange = formatVoltageRange;
 
   onSearchInput(value: string): void {
     this.searchTerm.set(value);

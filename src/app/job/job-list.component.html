@@ -83,13 +83,14 @@
           <th>Runtime</th>
           <th>Humidity %</th>
           <th>Temperature °C</th>
+          <th>Voltage V</th>
           <th class="col-actions">Actions</th>
         </tr>
       </thead>
       <tbody>
         @if (loading() && jobs().length === 0) {
           <tr>
-            <td class="empty" colspan="11">Loading…</td>
+            <td class="empty" colspan="12">Loading…</td>
           </tr>
         }
         @for (job of jobs(); track job.id) {
@@ -119,6 +120,7 @@
             <td class="mono">{{ job.runtime ?? '—' }}</td>
             <td class="mono">{{ formatHumidityRange(job.hlow, job.hhigh) }}</td>
             <td class="mono">{{ formatTemperatureRange(job.tlow, job.thigh) }}</td>
+            <td class="mono">{{ formatVoltageRange(job.vlow, job.vhigh) }}</td>
             <td class="col-actions">
               <button
                 type="button"
@@ -149,7 +151,7 @@
         } @empty {
           @if (!loading()) {
             <tr>
-              <td class="empty" colspan="11">No jobs found.</td>
+              <td class="empty" colspan="12">No jobs found.</td>
             </tr>
           }
         }

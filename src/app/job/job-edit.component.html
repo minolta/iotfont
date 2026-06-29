@@ -213,6 +213,39 @@
       </section>
       }
 
+      @if (showVoltageRange()) {
+      <section class="humidity-range-section" aria-labelledby="job-edit-voltage-range-heading">
+        <h2 id="job-edit-voltage-range-heading">Voltage range</h2>
+        <p class="field-hint">
+          GPIO ports run only when sensor voltage is within this range. Leave blank for any value.
+        </p>
+        <div class="field-row">
+          <div class="field">
+            <label for="job-edit-vlow">Min voltage (V)</label>
+            <input
+              id="job-edit-vlow"
+              type="number"
+              formControlName="vlow"
+              step="0.1"
+              placeholder="e.g. 11.5"
+              [readonly]="submitting()"
+            />
+          </div>
+          <div class="field">
+            <label for="job-edit-vhigh">Max voltage (V)</label>
+            <input
+              id="job-edit-vhigh"
+              type="number"
+              formControlName="vhigh"
+              step="0.1"
+              placeholder="e.g. 12.6"
+              [readonly]="submitting()"
+            />
+          </div>
+        </div>
+      </section>
+      }
+
       <app-job-ports-section
         [devices]="devices()"
         [ports]="portsFormArray"

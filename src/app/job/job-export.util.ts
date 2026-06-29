@@ -23,6 +23,8 @@ export interface JobExportRecord {
   pump: number | null;
   tlow: number | null;
   thigh: number | null;
+  vlow: number | null;
+  vhigh: number | null;
   priority: number;
   ports: JobPortWritePayload[];
   pumps: JobPumpWritePayload[];
@@ -50,6 +52,8 @@ export function jobToExportRecord(job: Job): JobExportRecord {
     pump: job.pump,
     tlow: job.tlow,
     thigh: job.thigh,
+    vlow: job.vlow,
+    vhigh: job.vhigh,
     priority: job.priority ?? 0,
     ports: (job.ports ?? []).map(
       (port): JobPortWritePayload => ({
