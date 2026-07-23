@@ -1,0 +1,60 @@
+<div class="page">
+  <a routerLink="/configs" class="back">← Back to configurations</a>
+  <h1>Edit configuration</h1>
+
+  @if (loading()) {
+    <p class="status">Loading…</p>
+  } @else if (loadError(); as le) {
+    <p class="error-banner" role="alert">{{ le }}</p>
+  } @else {
+    @if (saveError(); as se) {
+      <p class="error-banner" role="alert">{{ se }}</p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field" [class.invalid]="form.controls.cfgKey.invalid && form.controls.cfgKey.touched">
+        <label for="config-edit-key">Key</label>
+        <input
+          id="config-edit-key"
+          type="text"
+          formControlName="cfgKey"
+          autocomplete="off"
+          [readonly]="submitting()"
+        />
+        @if (form.controls.cfgKey.invalid && form.controls.cfgKey.touched) {
+          <span class="err">Key is required.</span>
+        }
+      </div>
+
+      <div class="field" [class.invalid]="form.controls.cfgValue.invalid && form.controls.cfgValue.touched">
+        <label for="config-edit-value">Value</label>
+        <input
+          id="config-edit-value"
+          type="text"
+          formControlName="cfgValue"
+          autocomplete="off"
+          [readonly]="submitting()"
+        />
+        @if (form.controls.cfgValue.invalid && form.controls.cfgValue.touched) {
+          <span class="err">Value is required.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="config-edit-description">Description</label>
+        <textarea
+          id="config-edit-description"
+          formControlName="description"
+          rows="3"
+          [readonly]="submitting()"
+        ></textarea>
+      </div>
+
+      <div class="actions">
+        <button type="submit" [disabled]="submitting()">
+          {{ submitting() ? 'Saving…' : 'Save changes' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

@@ -35,4 +35,9 @@ export class FirmwareService {
     const encoded = encodeURIComponent(appName.trim());
     return this.http.get<FwRelease>(`${this.rootUrl}/lastversion/${encoded}`);
   }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.rootUrl}/${id}`);
+  }
 }
+

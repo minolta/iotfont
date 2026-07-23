@@ -206,4 +206,31 @@ export class FirmwareUploadComponent implements OnInit {
         error: () => this.releases.set([]),
       });
   }
+
+  deleteRelease(item: FwRelease): void {
+    if (!item.id) return;
+    const name = item.app?.name || 'unknown';
+    const ver = item.ver ?? 0;
+    if (!confirm(`Are you sure you want to delete firmware release "${name}" version ${ver}?`)) {
+      return;
+    }
+
+    this.loadingList.set(true);
+    this.errorMessage.set(null);
+    this.firmwareService.delete(item.id).subscribe({
+      next: () => {
+        this.loadReleases(this.searchTerm().trim());
+        if (this.appName().trim() === name) {
+          const current = this.appName();
+          this.appName.set('');
+          this.appName.set(current);
+        }
+      },
+      error: (err: unknown) => {
+        this.loadingList.set(false);
+        this.errorMessage.set(formatHttpError(err, 'Could not delete firmware release.'));
+      },
+    });
+  }
 }
+

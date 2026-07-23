@@ -1,41 +1,41 @@
 <div class="device-list-page">
-  <h1>Devices</h1>
-  <p class="hint">Manage IoT devices registered in the backend.</p>
+  <h1>{{ 'device.title' | translate }}</h1>
+  <p class="hint">{{ 'device.hint' | translate }}</p>
 
   @if (createdId(); as cid) {
     <p class="success-banner">
-      Device #{{ cid }} created.
-      <a routerLink="/devices">Dismiss</a>
+      {{ 'device.created' | translate }} (#{{ cid }})
+      <a routerLink="/devices">{{ 'common.dismiss' | translate }}</a>
     </p>
   }
   @if (updatedId(); as uid) {
     <p class="success-banner success-banner--muted">
-      Device #{{ uid }} updated.
-      <a routerLink="/devices">Dismiss</a>
+      {{ 'device.updated' | translate }} (#{{ uid }})
+      <a routerLink="/devices">{{ 'common.dismiss' | translate }}</a>
     </p>
   }
 
   <div class="toolbar">
     <div class="search-field">
-      <label class="label-text" for="device-search">Search</label>
+      <label class="label-text" for="device-search">{{ 'common.search' | translate }}</label>
       <input
         id="device-search"
         type="search"
         autocomplete="off"
-        placeholder="Name, code, IP, MAC…"
+        [placeholder]="'device.searchPlaceholder' | translate"
         [value]="searchTerm()"
         (input)="onSearchInput($any($event.target).value)"
       />
     </div>
     @if (loading()) {
-      <span class="status" aria-live="polite">Loading…</span>
+      <span class="status" aria-live="polite">{{ 'common.loading' | translate }}</span>
     }
-    <a routerLink="/devices/info" class="view-link">Live info</a>
+    <a routerLink="/devices/info" class="view-link">{{ 'nav.liveInfo' | translate }}</a>
     <button type="button" class="export-btn" [disabled]="exporting() || loading()" (click)="exportDevices()">
-      {{ exporting() ? 'Exporting…' : 'Export' }}
+      {{ exporting() ? ('common.exporting' | translate) : ('common.export' | translate) }}
     </button>
-    <a routerLink="/devices/import" class="view-link">Import</a>
-    <a routerLink="/devices/new" class="add-link">Add device</a>
+    <a routerLink="/devices/import" class="view-link">{{ 'common.import' | translate }}</a>
+    <a routerLink="/devices/new" class="add-link">{{ 'device.addDevice' | translate }}</a>
   </div>
 
   @if (error(); as err) {
@@ -53,19 +53,19 @@
       <thead>
         <tr>
           <th>ID</th>
-          <th>Name</th>
-          <th>Code</th>
-          <th>IP</th>
-          <th>MAC</th>
-          <th>Version</th>
-          <th>Last check-in</th>
-          <th class="col-actions">Actions</th>
+          <th>{{ 'common.name' | translate }}</th>
+          <th>{{ 'common.code' | translate }}</th>
+          <th>{{ 'device.colIp' | translate }}</th>
+          <th>{{ 'device.colMac' | translate }}</th>
+          <th>{{ 'device.colVersion' | translate }}</th>
+          <th>{{ 'device.colCheckin' | translate }}</th>
+          <th class="col-actions">{{ 'common.actions' | translate }}</th>
         </tr>
       </thead>
       <tbody>
         @if (loading() && devices().length === 0) {
           <tr>
-            <td class="empty" colspan="8">Loading…</td>
+            <td class="empty" colspan="8">{{ 'common.loading' | translate }}</td>
           </tr>
         }
         @for (device of devices(); track device.id) {
@@ -91,26 +91,26 @@
             <td class="mono">{{ displayValue(device.version) }}</td>
             <td class="mono">{{ formatDate(device.lastcheckin) }}</td>
             <td class="col-actions">
-              <a [routerLink]="['/devices/info']" [queryParams]="{ add: device.id }" class="view-link">Info</a>
-              <a [routerLink]="['/devices', device.id, 'humidity']" class="view-link">Humidity</a>
-              <a [routerLink]="['/readv']" [queryParams]="{ deviceId: device.id }" class="view-link">ReadV</a>
-              <a [routerLink]="['/devices', device.id, 'pressure']" class="view-link">PSI</a>
-              <a [routerLink]="['/jobs']" [queryParams]="{ deviceId: device.id }" class="view-link">Jobs</a>
-              <a [routerLink]="['/devices', device.id, 'edit']" class="edit-link">Edit</a>
+              <a [routerLink]="['/devices/info']" [queryParams]="{ add: device.id }" class="view-link">{{ 'device.info' | translate }}</a>
+              <a [routerLink]="['/devices', device.id, 'humidity']" class="view-link">{{ 'device.humidity' | translate }}</a>
+              <a [routerLink]="['/readv']" [queryParams]="{ deviceId: device.id }" class="view-link">{{ 'device.readv' | translate }}</a>
+              <a [routerLink]="['/devices', device.id, 'pressure']" class="view-link">{{ 'device.psi' | translate }}</a>
+              <a [routerLink]="['/jobs']" [queryParams]="{ deviceId: device.id }" class="view-link">{{ 'device.jobs' | translate }}</a>
+              <a [routerLink]="['/devices', device.id, 'edit']" class="edit-link">{{ 'common.edit' | translate }}</a>
               <button
                 type="button"
                 class="delete-btn"
                 [disabled]="deletingId() === device.id"
                 (click)="deleteDevice(device)"
               >
-                {{ deletingId() === device.id ? 'Deleting…' : 'Delete' }}
+                {{ deletingId() === device.id ? ('common.deleting' | translate) : ('common.delete' | translate) }}
               </button>
             </td>
           </tr>
         } @empty {
           @if (!loading()) {
             <tr>
-              <td class="empty" colspan="8">No devices found.</td>
+              <td class="empty" colspan="8">{{ 'device.noDevices' | translate }}</td>
             </tr>
           }
         }
@@ -118,3 +118,4 @@
     </table>
   </div>
 </div>
+

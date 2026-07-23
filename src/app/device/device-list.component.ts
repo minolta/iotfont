@@ -15,11 +15,13 @@ import type { Device } from './device.model';
 import { devicesToExportPayload } from './device-export.util';
 import { buildDeviceSetConfigUrl } from './device-info.model';
 import { DeviceService } from './device.service';
+import { TranslationService } from '../shared/translation.service';
+import { TranslatePipe } from '../shared/translate.pipe';
 
 @Component({
   selector: 'app-device-list',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   templateUrl: './device-list.component.html',
   styleUrl: './device-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,6 +29,7 @@ import { DeviceService } from './device.service';
 export class DeviceListComponent {
   private readonly deviceService = inject(DeviceService);
   private readonly route = inject(ActivatedRoute);
+  readonly translationService = inject(TranslationService);
 
   readonly createdId = toSignal(
     this.route.queryParamMap.pipe(map((p) => p.get('created'))),
@@ -62,7 +65,7 @@ export class DeviceListComponent {
           switchMap(() =>
             request$.pipe(
               catchError(() => {
-                this.error.set('Could not load devices.');
+                this.error.set(this.translationService.translate('device.loadError'));
                 return of([] as Device[]);
               }),
               finalize(() => this.loading.set(false)),
@@ -90,7 +93,7 @@ export class DeviceListComponent {
       .subscribe({
         next: (devices) => {
           if (devices.length === 0) {
-            this.exportError.set('No devices to export.');
+            this.exportError.set(this.translationService.translate('device.noExportData'));
             return;
           }
           downloadJsonFile(
@@ -99,7 +102,7 @@ export class DeviceListComponent {
           );
         },
         error: (err: unknown) => {
-          this.exportError.set(formatHttpError(err, 'Could not export devices.'));
+          this.exportError.set(formatHttpError(err, this.translationService.translate('device.exportError')));
         },
       });
   }
@@ -107,7 +110,8 @@ export class DeviceListComponent {
   deleteDevice(device: Device): void {
     this.deleteError.set(null);
     const label = device.name?.trim() || device.code?.trim() || `#${device.id}`;
-    if (!window.confirm(`Delete device "${label}"?`)) {
+    const confirmTemplate = this.translationService.translate('device.confirmDelete');
+    if (!window.confirm(confirmTemplate.replace('{name}', label))) {
       return;
     }
     this.deletingId.set(device.id);
@@ -151,6 +155,6 @@ export class DeviceListComponent {
         return err.error;
       }
     }
-    return 'Could not delete device.';
+    return this.translationService.translate('device.deleteError');
   }
 }

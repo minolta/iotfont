@@ -5,11 +5,13 @@ import { Router } from '@angular/router';
 import { finalize, switchMap } from 'rxjs';
 
 import { AuthService } from './auth.service';
+import { TranslationService } from '../shared/translation.service';
+import { TranslatePipe } from '../shared/translate.pipe';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, TranslatePipe],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -18,6 +20,7 @@ export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  readonly translationService = inject(TranslationService);
 
   readonly submitting = signal(false);
   readonly errorMessage = signal<string | null>(null);
@@ -55,6 +58,10 @@ export class LoginComponent {
       });
   }
 
+  toggleLanguage(): void {
+    this.translationService.toggleLanguage();
+  }
+
   private formatHttpError(err: unknown): string {
     if (err instanceof HttpErrorResponse) {
       const body = err.error;
@@ -68,10 +75,11 @@ export class LoginComponent {
         }
       }
       if (err.status === 401) {
-        return 'Invalid username or password.';
+        return this.translationService.translate('login.invalidCreds');
       }
       return err.message || `Request failed (${err.status})`;
     }
-    return 'Login failed.';
+    return this.translationService.translate('login.failed');
   }
 }
+

@@ -1,10 +1,9 @@
 <section class="crud-page">
   <header class="page-header">
     <div>
-      <h1>GPIO call</h1>
+      <h1>Custom Direct GPIO calling dashboard</h1>
       <p class="page-lead">
-        Call a device directly, e.g.
-        <code>http://192.168.88.19/run?port=D8&amp;value=1&amp;delay=200</code>
+        Configure custom ports, logic levels, and delays for each device independently, then run them concurrently.
       </p>
     </div>
     <a routerLink="/devices" class="secondary-btn">Back to devices</a>
@@ -14,138 +13,198 @@
     <p class="error-banner" role="alert">{{ devicesError() }}</p>
   }
 
-  <form class="gpio-form" (submit)="$event.preventDefault(); callGpio()">
-    <div class="field">
-      <label for="gpio-device">Device</label>
-      <select
-        id="gpio-device"
-        [value]="deviceId()"
-        [disabled]="loadingDevices() || calling()"
-        (change)="onDeviceChange($any($event.target).value)"
+  <form class="gpio-dashboard-form" (submit)="$event.preventDefault(); callGpio()">
+    <div class="table-wrap">
+      <table class="gpio-builder-table">
+        <thead>
+          <tr>
+            <th style="width: 25%;">Device</th>
+            <th style="width: 20%;">GPIO Port</th>
+            <th style="width: 12%;">Value (Logic)</th>
+            <th style="width: 12%;">Delay (s)</th>
+            <th style="width: 12%;">Wait (s)</th>
+            <th style="width: 15%;">Status / Response</th>
+            <th style="width: 4%;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.id; let idx = $index) {
+            <tr [class]="'row-' + row.status">
+              <!-- Device Dropdown -->
+              <td>
+                <select
+                  [value]="row.deviceId"
+                  [disabled]="calling() || countdownActive()"
+                  (change)="updateRow(row.id, { deviceId: $any($event.target).value ? Number($any($event.target).value) : null })"
+                  class="form-control"
+                >
+                  <option value="">Select device…</option>
+                  @for (device of devices(); track device.id) {
+                    <option [value]="device.id">
+                      #{{ device.id }} — {{ deviceLabel(device) }}
+                    </option>
+                  }
+                </select>
+              </td>
+
+              <!-- Port Selector -->
+              <td>
+                <div class="port-input-group">
+                  @if (!row.useCustomPort) {
+                    <select
+                      [value]="row.port"
+                      [disabled]="calling() || countdownActive()"
+                      (change)="updateRow(row.id, { port: $any($event.target).value })"
+                      class="form-control port-select"
+                    >
+                      @for (portOpt of portOptions(); track portOpt) {
+                        <option [value]="portOpt">{{ portOpt }}</option>
+                      }
+                    </select>
+                  } @else {
+                    <input
+                      type="text"
+                      [value]="row.customPort"
+                      [disabled]="calling() || countdownActive()"
+                      placeholder="e.g. D10"
+                      (input)="updateRow(row.id, { customPort: $any($event.target).value })"
+                      class="form-control custom-port-input"
+                    />
+                  }
+                  <label class="custom-port-toggle-label" title="Use custom port name">
+                    <input
+                      type="checkbox"
+                      [checked]="row.useCustomPort"
+                      [disabled]="calling() || countdownActive()"
+                      (change)="updateRow(row.id, { useCustomPort: $any($event.target).checked })"
+                    />
+                    <span>Custom</span>
+                  </label>
+                </div>
+              </td>
+
+              <!-- Value Selector -->
+              <td>
+                <select
+                  [value]="row.value"
+                  [disabled]="calling() || countdownActive()"
+                  (change)="updateRow(row.id, { value: Number($any($event.target).value) })"
+                  class="form-control"
+                >
+                  <option value="1">1 (HIGH / ON)</option>
+                  <option value="0">0 (LOW / OFF)</option>
+                </select>
+              </td>
+
+              <!-- Delay Input -->
+              <td>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  [value]="row.delay"
+                  [disabled]="calling() || countdownActive()"
+                  (input)="updateRow(row.id, { delay: Math.max(0, Math.floor(Number($any($event.target).value || 0))) })"
+                  class="form-control"
+                />
+              </td>
+
+              <!-- Wait Input -->
+              <td>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  [value]="row.wait"
+                  [disabled]="calling() || countdownActive()"
+                  (input)="updateRow(row.id, { wait: Math.max(0, Math.floor(Number($any($event.target).value || 0))) })"
+                  class="form-control"
+                />
+              </td>
+
+              <!-- Row Status Inline -->
+              <td>
+                <div class="row-status-container">
+                  <span class="status-badge" [class]="'badge-' + row.status">
+                    {{ row.status | uppercase }}
+                  </span>
+                  @if (row.message) {
+                    <span class="row-message" [title]="row.message">{{ row.message }}</span>
+                  } @else if (row.url) {
+                    <span class="row-url-preview" [title]="row.url">Preview URL</span>
+                  }
+                </div>
+              </td>
+
+              <!-- Delete Row Action -->
+              <td>
+                <button
+                  type="button"
+                  class="delete-row-btn"
+                  [disabled]="calling() || countdownActive() || rows().length <= 1"
+                  (click)="removeRow(row.id)"
+                  title="Remove call row"
+                >
+                  &times;
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Action Buttons & Delay Configuration -->
+    <div class="builder-actions">
+      <button
+        type="button"
+        class="secondary-btn add-row-btn"
+        [disabled]="calling() || countdownActive()"
+        (click)="addRow()"
       >
-        <option value="">Select device…</option>
-        @for (device of devices(); track device.id) {
-          <option [value]="device.id">
-            #{{ device.id }} — {{ deviceLabel(device) }}
-            @if (device.ip) {
-              ({{ device.ip }})
-            }
-          </option>
+        + Add Call Row
+      </button>
+
+      <div class="execution-controls">
+        <div class="delay-field">
+          <label for="execution-delay">Start Delay (s)</label>
+          <input
+            id="execution-delay"
+            type="number"
+            min="0"
+            step="1"
+            [disabled]="calling() || countdownActive()"
+            [value]="executionDelay()"
+            (input)="executionDelay.set(Math.max(0, Math.floor(Number($any($event.target).value || 0))))"
+            class="form-control delay-input"
+          />
+        </div>
+
+        @if (!countdownActive()) {
+          <button
+            type="submit"
+            class="primary-btn execute-btn"
+            [disabled]="calling() || rows().length === 0"
+          >
+            {{ calling() ? 'Running Direct Calls...' : 'Execute Direct Calls (' + rows().length + ')' }}
+          </button>
+        } @else {
+          <div class="countdown-banner">
+            <span class="countdown-text">Executing in <strong>{{ countdownSeconds() }}s</strong>...</span>
+            <button
+              type="button"
+              class="cancel-btn"
+              (click)="cancelCountdown()"
+            >
+              Cancel Execution
+            </button>
+          </div>
         }
-      </select>
-    </div>
-
-    <div class="field">
-      <label for="gpio-port">GPIO port</label>
-      <select
-        id="gpio-port"
-        [value]="port()"
-        [disabled]="calling() || useCustomPort()"
-        (change)="onPortChange($any($event.target).value)"
-      >
-        @for (option of portOptions(); track option) {
-          <option [value]="option">{{ option }}</option>
-        }
-      </select>
-      @if (loadingPorts()) {
-        <span class="field-hint">Loading ports from device…</span>
-      }
-    </div>
-
-    <div class="field checkbox-field">
-      <input
-        id="gpio-custom-port"
-        type="checkbox"
-        [checked]="useCustomPort()"
-        [disabled]="calling()"
-        (change)="onCustomPortToggle($any($event.target).checked)"
-      />
-      <label for="gpio-custom-port">Custom port name</label>
-    </div>
-
-    @if (useCustomPort()) {
-      <div class="field">
-        <label for="gpio-port-custom">Custom GPIO port</label>
-        <input
-          id="gpio-port-custom"
-          type="text"
-          [value]="customPort()"
-          placeholder="D8"
-          spellcheck="false"
-          autocomplete="off"
-          [disabled]="calling()"
-          (input)="customPort.set($any($event.target).value)"
-        />
       </div>
-    }
-
-    <div class="field-row">
-      <div class="field">
-        <label for="gpio-value">Value</label>
-        <select
-          id="gpio-value"
-          [value]="value()"
-          [disabled]="calling()"
-          (change)="value.set($any($event.target).value)"
-        >
-          <option value="1">1 (on)</option>
-          <option value="0">0 (off)</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label for="gpio-delay">Delay (s)</label>
-        <input
-          id="gpio-delay"
-          type="number"
-          min="0"
-          step="1"
-          [value]="delay()"
-          [disabled]="calling()"
-          (input)="delay.set($any($event.target).value)"
-        />
-      </div>
-
-      <div class="field">
-        <label for="gpio-wait">Wait (s)</label>
-        <input
-          id="gpio-wait"
-          type="number"
-          min="0"
-          step="1"
-          placeholder="optional"
-          [value]="wait()"
-          [disabled]="calling()"
-          (input)="wait.set($any($event.target).value)"
-        />
-      </div>
-    </div>
-
-    <div class="preview-box">
-      <span class="preview-label">URL preview</span>
-      @if (previewUrl()) {
-        <code class="preview-url">{{ previewUrl() }}</code>
-      } @else {
-        <span class="muted">Select device and port to preview URL.</span>
-      }
     </div>
 
     @if (callError()) {
       <p class="error-banner" role="alert">{{ callError() }}</p>
     }
-
-    @if (lastResult(); as result) {
-      <div class="result-box" [class.result-ok]="result.ok" [class.result-fail]="!result.ok">
-        <strong>{{ result.ok ? 'Call succeeded' : 'Call failed' }}</strong>
-        <code>{{ result.url }}</code>
-        @if (result.message) {
-          <span>{{ result.message }}</span>
-        }
-      </div>
-    }
-
-    <button type="submit" class="primary-btn" [disabled]="calling() || !selectedDevice() || !effectivePort()">
-      {{ calling() ? 'Calling…' : 'Call URL' }}
-    </button>
   </form>
 </section>

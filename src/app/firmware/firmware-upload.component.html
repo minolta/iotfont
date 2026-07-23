@@ -137,6 +137,7 @@
               <th>Version</th>
               <th>MD5</th>
               <th>File</th>
+              <th class="col-actions">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -147,6 +148,16 @@
                 <td class="mono">{{ item.ver ?? '—' }}</td>
                 <td class="mono">{{ item.crc || '—' }}</td>
                 <td class="mono file-path">{{ item.name || '—' }}</td>
+                <td class="col-actions">
+                  <button
+                    type="button"
+                    class="delete-btn"
+                    [disabled]="submitting() || loadingList()"
+                    (click)="deleteRelease(item)"
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
             }
           </tbody>

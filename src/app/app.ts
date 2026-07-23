@@ -5,16 +5,19 @@ import { catchError, of, timer } from 'rxjs';
 
 import { ServerTimeService } from './api/server-time.service';
 import { AuthService } from './auth/auth.service';
+import { TranslationService } from './shared/translation.service';
+import { TranslatePipe } from './shared/translate.pipe';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
 export class App {
   private readonly serverTimeService = inject(ServerTimeService);
   private readonly authService = inject(AuthService);
+  readonly translationService = inject(TranslationService);
 
   readonly apiTime = signal('—');
   readonly apiTimeOffline = signal(false);
@@ -44,13 +47,17 @@ export class App {
     this.authService.logout();
   }
 
+  toggleLanguage(): void {
+    this.translationService.toggleLanguage();
+  }
+
   private syncServerTime(): void {
     this.serverTimeService
       .getNow()
       .pipe(
         catchError(() => {
           this.apiTimeOffline.set(true);
-          this.apiTime.set('Offline');
+          this.apiTime.set('nav.offline');
           this.synced = false;
           return of(null);
         }),
@@ -65,7 +72,7 @@ export class App {
         const serverMs = new Date(response.now).getTime();
         if (Number.isNaN(serverMs)) {
           this.apiTimeOffline.set(true);
-          this.apiTime.set('Invalid time');
+          this.apiTime.set('nav.invalidTime');
           this.synced = false;
           return;
         }
@@ -92,3 +99,4 @@ export class App {
     );
   }
 }
+

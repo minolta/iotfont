@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, OnDestroy, signal } from '@angular/core';
+import { UpperCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { catchError, finalize, of } from 'rxjs';
+import { catchError, finalize, forkJoin, map, of } from 'rxjs';
 
 import { entityLabel, formatHttpError } from '../shared/format.util';
 
@@ -10,15 +11,31 @@ import { DeviceService } from './device.service';
 
 const DEFAULT_GPIO_PORTS = ['D1', 'D2', 'D4', 'D5', 'D6', 'D7', 'D8'] as const;
 
+export interface GpioCallRow {
+  id: string;
+  deviceId: number | null;
+  port: string;
+  useCustomPort: boolean;
+  customPort: string;
+  value: number; // 0 or 1
+  delay: number;
+  wait: number;
+  
+  // Real-time status
+  status: 'idle' | 'calling' | 'success' | 'failed';
+  message: string | null;
+  url: string | null;
+}
+
 @Component({
   selector: 'app-device-gpio-call',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, UpperCasePipe],
   templateUrl: './device-gpio-call.component.html',
   styleUrl: './device-gpio-call.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DeviceGpioCallComponent implements OnInit {
+export class DeviceGpioCallComponent implements OnInit, OnDestroy {
   private readonly deviceService = inject(DeviceService);
   private readonly deviceInfoService = inject(DeviceInfoService);
 
@@ -26,116 +43,29 @@ export class DeviceGpioCallComponent implements OnInit {
   readonly devicesError = signal<string | null>(null);
   readonly devices = signal<Device[]>([]);
 
-  readonly deviceId = signal('');
-  readonly port = signal('D8');
-  readonly customPort = signal('');
-  readonly useCustomPort = signal(false);
-  readonly value = signal('1');
-  readonly delay = signal('200');
-  readonly wait = signal('');
-
-  readonly portOptions = signal<string[]>([...DEFAULT_GPIO_PORTS]);
-  readonly loadingPorts = signal(false);
+  // The collection of configured GPIO call rows
+  readonly rows = signal<GpioCallRow[]>([]);
   readonly calling = signal(false);
   readonly callError = signal<string | null>(null);
-  readonly lastResult = signal<{ ok: boolean; url: string; message: string | null } | null>(null);
 
-  readonly selectedDevice = computed(() => {
-    const id = Number(this.deviceId());
-    if (!Number.isFinite(id) || id < 1) {
-      return null;
-    }
-    return this.devices().find((d) => d.id === id) ?? null;
-  });
+  readonly portOptions = signal<string[]>([...DEFAULT_GPIO_PORTS]);
 
-  readonly effectivePort = computed(() => {
-    if (this.useCustomPort()) {
-      return this.customPort().trim().toUpperCase();
-    }
-    return this.port().trim().toUpperCase();
-  });
+  // Delay before firing execution
+  readonly executionDelay = signal(0);
+  readonly countdownSeconds = signal(0);
+  readonly countdownActive = signal(false);
+  private countdownIntervalId: any = null;
 
-  readonly previewUrl = computed(() => {
-    const device = this.selectedDevice();
-    const portName = this.effectivePort();
-    if (!device?.ip?.trim() || !portName) {
-      return '';
-    }
-    const host = device.ip.trim().replace(/^https?:\/\//i, '').replace(/\/$/, '');
-    const delay = this.parseDelay();
-    const wait = this.parseWait();
-    const base = `http://${host}/run?port=${portName}&value=${this.parseValue()}&delay=${delay}`;
-    return wait > 0 ? `${base}&wait=${wait}` : base;
-  });
+  // Expose JS globals for the template expressions
+  protected readonly Number = Number;
+  protected readonly Math = Math;
 
   ngOnInit(): void {
     this.loadDevices();
   }
 
-  onDeviceChange(value: string): void {
-    this.deviceId.set(value);
-    this.callError.set(null);
-    this.lastResult.set(null);
-    this.loadPortsForDevice(value);
-  }
-
-  onPortChange(value: string): void {
-    this.port.set(value);
-    this.useCustomPort.set(false);
-    this.callError.set(null);
-  }
-
-  onCustomPortToggle(checked: boolean): void {
-    this.useCustomPort.set(checked);
-    this.callError.set(null);
-  }
-
-  callGpio(): void {
-    const device = this.selectedDevice();
-    const portName = this.effectivePort();
-    if (!device) {
-      this.callError.set('Select a device.');
-      return;
-    }
-    if (!portName) {
-      this.callError.set('Select or enter a GPIO port.');
-      return;
-    }
-    if (!device.ip?.trim()) {
-      this.callError.set('Selected device has no IP address.');
-      return;
-    }
-
-    this.calling.set(true);
-    this.callError.set(null);
-    this.lastResult.set(null);
-
-    const wait = this.parseWait();
-    this.deviceInfoService
-      .runGpio(device.id, {
-        port: portName,
-        value: this.parseValue(),
-        delay: this.parseDelay(),
-        ...(wait > 0 ? { wait } : {}),
-      })
-      .pipe(finalize(() => this.calling.set(false)))
-      .subscribe({
-        next: (response) => {
-          this.lastResult.set({
-            ok: response.ok,
-            url: response.url,
-            message: response.message ?? null,
-          });
-          if (!response.ok) {
-            this.callError.set(response.message ?? 'Device call failed.');
-          }
-        },
-        error: (err) => this.callError.set(formatHttpError(err, 'Could not call device.')),
-      });
-  }
-
-  deviceLabel(device: Device): string {
-    return entityLabel(device.name, device.code, device.id);
+  ngOnDestroy(): void {
+    this.clearCountdown();
   }
 
   private loadDevices(): void {
@@ -150,52 +80,196 @@ export class DeviceGpioCallComponent implements OnInit {
         }),
         finalize(() => this.loadingDevices.set(false)),
       )
-      .subscribe((devices) => this.devices.set(devices));
-  }
-
-  private loadPortsForDevice(deviceIdValue: string): void {
-    const id = Number(deviceIdValue);
-    if (!Number.isFinite(id) || id < 1) {
-      this.portOptions.set([...DEFAULT_GPIO_PORTS]);
-      return;
-    }
-    this.loadingPorts.set(true);
-    this.deviceInfoService
-      .fetchLiveJson(id)
-      .pipe(
-        catchError(() => of({} as Record<string, unknown>)),
-        finalize(() => this.loadingPorts.set(false)),
-      )
-      .subscribe((json) => {
-        const fromDevice = Object.keys(json)
-          .filter((key) => /^D\d+$/i.test(key))
-          .map((key) => key.toUpperCase())
-          .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-        const merged = [...new Set([...fromDevice, ...DEFAULT_GPIO_PORTS])].sort((a, b) =>
-          a.localeCompare(b, undefined, { numeric: true }),
-        );
-        this.portOptions.set(merged);
-        if (merged.length && !merged.includes(this.port())) {
-          this.port.set(merged.includes('D8') ? 'D8' : merged[0]);
+      .subscribe((devices) => {
+        this.devices.set(devices);
+        // Add an initial row once devices are loaded
+        if (devices.length > 0) {
+          this.addRow();
         }
       });
   }
 
-  private parseValue(): number {
-    return this.value() === '0' ? 0 : 1;
+  addRow(): void {
+    const newId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 9);
+    const defaultDevice = this.devices().length > 0 ? this.devices()[0].id : null;
+    
+    this.rows.update((list) => [
+      ...list,
+      {
+        id: newId,
+        deviceId: defaultDevice,
+        port: 'D1',
+        useCustomPort: false,
+        customPort: '',
+        value: 1,
+        delay: 200,
+        wait: 0,
+        status: 'idle',
+        message: null,
+        url: null,
+      },
+    ]);
   }
 
-  private parseDelay(): number {
-    const parsed = Number(this.delay());
-    return Number.isFinite(parsed) && parsed >= 0 ? Math.trunc(parsed) : 0;
+  removeRow(id: string): void {
+    this.rows.update((list) => list.filter((r) => r.id !== id));
   }
 
-  private parseWait(): number {
-    const raw = this.wait().trim();
-    if (!raw) {
-      return 0;
+  updateRow(id: string, updates: Partial<GpioCallRow>): void {
+    this.rows.update((list) =>
+      list.map((r) => {
+        if (r.id !== id) return r;
+        const updated = { ...r, ...updates };
+        // Recalculate preview URL inline if device/port changes
+        updated.url = this.calculateUrl(updated);
+        return updated;
+      })
+    );
+  }
+
+  deviceLabel(device: Device): string {
+    return entityLabel(device.name, device.code, device.id);
+  }
+
+  private calculateUrl(row: GpioCallRow): string | null {
+    if (!row.deviceId) return null;
+    const device = this.devices().find((d) => d.id === row.deviceId);
+    if (!device?.ip?.trim()) return null;
+
+    const host = device.ip.trim().replace(/^https?:\/\//i, '').replace(/\/$/, '');
+    const portName = row.useCustomPort ? row.customPort.trim().toUpperCase() : row.port;
+    if (!portName) return null;
+
+    const base = `http://${host}/run?port=${portName}&value=${row.value}&delay=${row.delay}`;
+    return row.wait > 0 ? `${base}&wait=${row.wait}` : base;
+  }
+
+  callGpio(): void {
+    const activeRows = this.rows();
+    if (activeRows.length === 0) {
+      this.callError.set('Add at least one call configuration row.');
+      return;
     }
-    const parsed = Number(raw);
-    return Number.isFinite(parsed) && parsed >= 0 ? Math.trunc(parsed) : 0;
+
+    // Verify all rows have valid device and port
+    for (let i = 0; i < activeRows.length; i++) {
+      const r = activeRows[i];
+      if (!r.deviceId) {
+        this.callError.set(`Row #${i + 1} has no device selected.`);
+        return;
+      }
+      const portName = r.useCustomPort ? r.customPort.trim() : r.port;
+      if (!portName) {
+        this.callError.set(`Row #${i + 1} has no GPIO port specified.`);
+        return;
+      }
+    }
+
+    this.callError.set(null);
+
+    const delayVal = this.executionDelay();
+    if (delayVal > 0) {
+      this.startCountdown(delayVal);
+    } else {
+      this.executeRequests();
+    }
+  }
+
+  private startCountdown(seconds: number): void {
+    this.clearCountdown();
+    this.countdownActive.set(true);
+    this.countdownSeconds.set(seconds);
+
+    this.countdownIntervalId = setInterval(() => {
+      this.countdownSeconds.update((s) => {
+        if (s <= 1) {
+          this.clearCountdown();
+          this.executeRequests();
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+  }
+
+  cancelCountdown(): void {
+    this.clearCountdown();
+    this.rows.update((list) =>
+      list.map((r) => ({ ...r, status: 'idle', message: null }))
+    );
+  }
+
+  private clearCountdown(): void {
+    if (this.countdownIntervalId) {
+      clearInterval(this.countdownIntervalId);
+      this.countdownIntervalId = null;
+    }
+    this.countdownActive.set(false);
+  }
+
+  private executeRequests(): void {
+    const activeRows = this.rows();
+    this.calling.set(true);
+
+    const requests = activeRows.map((row) => {
+      this.updateRowStatus(row.id, 'calling', null, this.calculateUrl(row));
+
+      const deviceId = row.deviceId;
+      if (deviceId == null) {
+        this.updateRowStatus(row.id, 'failed', 'Device selection is empty', null);
+        return of({ ok: false, rowId: row.id });
+      }
+
+      const device = this.devices().find((d) => d.id === deviceId);
+      if (!device?.ip?.trim()) {
+        this.updateRowStatus(row.id, 'failed', 'Device has no IP address', null);
+        return of({ ok: false, rowId: row.id });
+      }
+
+      const portName = row.useCustomPort ? row.customPort.trim().toUpperCase() : row.port;
+
+      return this.deviceInfoService
+        .runGpio(deviceId, {
+          port: portName,
+          value: row.value,
+          delay: row.delay,
+          ...(row.wait > 0 ? { wait: row.wait } : {}),
+        })
+        .pipe(
+          map((res) => {
+            if (res.ok) {
+              this.updateRowStatus(row.id, 'success', res.message ?? 'Success', res.url);
+            } else {
+              this.updateRowStatus(row.id, 'failed', res.message ?? 'Device call failed', res.url);
+            }
+            return { ok: res.ok, rowId: row.id };
+          }),
+          catchError((err: unknown) => {
+            const errStr = formatHttpError(err, 'Device call failed');
+            this.updateRowStatus(row.id, 'failed', errStr, this.calculateUrl(row));
+            return of({ ok: false, rowId: row.id });
+          })
+        );
+    });
+
+    forkJoin(requests)
+      .pipe(finalize(() => this.calling.set(false)))
+      .subscribe();
+  }
+
+  private updateRowStatus(
+    id: string,
+    status: GpioCallRow['status'],
+    message: string | null,
+    url: string | null
+  ): void {
+    this.rows.update((list) =>
+      list.map((r) => {
+        if (r.id !== id) return r;
+        const updated = { ...r, status, message };
+        if (url) updated.url = url;
+        return updated;
+      })
+    );
   }
 }

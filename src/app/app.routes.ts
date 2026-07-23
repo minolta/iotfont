@@ -150,6 +150,22 @@ export const routes: Routes = [
         canActivate: [adminGuard],
         loadComponent: () => import('./user/user-list.component').then((m) => m.UserListComponent),
       },
+      {
+        path: 'configs/new',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./config/config-add-new.component').then((m) => m.ConfigAddNewComponent),
+      },
+      {
+        path: 'configs/:id/edit',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./config/config-edit.component').then((m) => m.ConfigEditComponent),
+      },
+      {
+        path: 'configs',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./config/config-list.component').then((m) => m.ConfigListComponent),
+      },
     ],
   },
 ];

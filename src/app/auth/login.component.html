@@ -1,7 +1,12 @@
 <div class="login-shell">
   <div class="login-card">
-    <h1>IoT Admin</h1>
-    <p class="hint">Sign in with your account to manage devices and jobs.</p>
+    <div class="login-header">
+      <h1>{{ 'nav.brand' | translate }}</h1>
+      <button type="button" class="lang-toggle-btn-dark" (click)="toggleLanguage()">
+        {{ translationService.lang() === 'en' ? 'ไทย (TH)' : 'English (EN)' }}
+      </button>
+    </div>
+    <p class="hint">{{ 'login.hint' | translate }}</p>
 
     @if (errorMessage(); as msg) {
       <p class="error-banner" role="alert">{{ msg }}</p>
@@ -9,7 +14,7 @@
 
     <form [formGroup]="form" (ngSubmit)="submit()">
       <div class="field" [class.invalid]="form.controls.username.touched && form.controls.username.invalid">
-        <label for="login-username">Username</label>
+        <label for="login-username">{{ 'login.username' | translate }}</label>
         <input
           id="login-username"
           type="text"
@@ -18,12 +23,12 @@
           autofocus
         />
         @if (form.controls.username.touched && form.controls.username.invalid) {
-          <span class="err">Username is required.</span>
+          <span class="err">{{ 'login.usernameRequired' | translate }}</span>
         }
       </div>
 
       <div class="field" [class.invalid]="form.controls.password.touched && form.controls.password.invalid">
-        <label for="login-password">Password</label>
+        <label for="login-password">{{ 'login.password' | translate }}</label>
         <input
           id="login-password"
           type="password"
@@ -31,15 +36,16 @@
           autocomplete="current-password"
         />
         @if (form.controls.password.touched && form.controls.password.invalid) {
-          <span class="err">Password is required.</span>
+          <span class="err">{{ 'login.passwordRequired' | translate }}</span>
         }
       </div>
 
       <div class="actions">
         <button type="submit" [disabled]="submitting()">
-          {{ submitting() ? 'Signing in…' : 'Sign in' }}
+          {{ submitting() ? ('login.submitting' | translate) : ('login.signIn' | translate) }}
         </button>
       </div>
     </form>
   </div>
 </div>
+

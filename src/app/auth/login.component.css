@@ -22,9 +22,34 @@
 }
 
 .login-card h1 {
+  margin-bottom: 0;
+}
+
+.login-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 0.35rem;
+}
+
+.lang-toggle-btn-dark {
+  background: transparent;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lang-toggle-btn-dark:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
 }
 
 .login-card .hint {
   margin-bottom: 1.25rem;
 }
+

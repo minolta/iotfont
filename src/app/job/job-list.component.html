@@ -1,41 +1,41 @@
 <div class="list-page">
-  <h1>Jobs</h1>
-  <p class="hint">Scheduled tasks assigned to devices and job types.</p>
+  <h1>{{ 'job.title' | translate }}</h1>
+  <p class="hint">{{ 'job.hint' | translate }}</p>
 
   @if (createdId(); as cid) {
     <p class="success-banner">
-      Job #{{ cid }} created.
-      <a routerLink="/jobs">Dismiss</a>
+      {{ 'job.created' | translate }} (#{{ cid }})
+      <a routerLink="/jobs">{{ 'common.dismiss' | translate }}</a>
     </p>
   }
   @if (updatedId(); as uid) {
     <p class="success-banner success-banner--muted">
-      Job #{{ uid }} updated.
-      <a routerLink="/jobs">Dismiss</a>
+      {{ 'job.updated' | translate }} (#{{ uid }})
+      <a routerLink="/jobs">{{ 'common.dismiss' | translate }}</a>
     </p>
   }
 
   <div class="toolbar">
     <div class="search-field">
-      <label class="label-text" for="job-search">Search</label>
+      <label class="label-text" for="job-search">{{ 'common.search' | translate }}</label>
       <input
         id="job-search"
         type="search"
         autocomplete="off"
-        placeholder="Name, description, job type…"
+        [placeholder]="'job.searchPlaceholder' | translate"
         [value]="searchTerm()"
         [disabled]="!!deviceFilter()"
         (input)="onSearchInput($any($event.target).value)"
       />
     </div>
     <div class="filter-field">
-      <label class="label-text" for="job-device-filter">Device</label>
+      <label class="label-text" for="job-device-filter">{{ 'job.deviceFilter' | translate }}</label>
       <select
         id="job-device-filter"
         [value]="deviceFilter()"
         (change)="onDeviceFilterChange($any($event.target).value)"
       >
-        <option value="">All devices</option>
+        <option value="">{{ 'nav.allDevices' | translate }}</option>
         @for (device of devices(); track device.id) {
           <option [value]="device.id">
             #{{ device.id }} — {{ displayValue(device.name) !== '—' ? displayValue(device.name) : displayValue(device.code) }}
@@ -44,13 +44,13 @@
       </select>
     </div>
     @if (loading()) {
-      <span class="status" aria-live="polite">Loading…</span>
+      <span class="status" aria-live="polite">{{ 'common.loading' | translate }}</span>
     }
     <button type="button" class="export-btn" [disabled]="exporting() || loading()" (click)="exportJobs()">
-      {{ exporting() ? 'Exporting…' : 'Export' }}
+      {{ exporting() ? ('common.exporting' | translate) : ('common.export' | translate) }}
     </button>
-    <a routerLink="/jobs/import" class="view-link">Import</a>
-    <a routerLink="/jobs/new" class="add-link">Add job</a>
+    <a routerLink="/jobs/import" class="view-link">{{ 'common.import' | translate }}</a>
+    <a routerLink="/jobs/new" class="add-link">{{ 'job.addJob' | translate }}</a>
   </div>
 
   @if (error(); as err) {
@@ -74,23 +74,23 @@
       <thead>
         <tr>
           <th>ID</th>
-          <th>Name</th>
-          <th>Device</th>
-          <th>Job type</th>
-          <th>Group</th>
-          <th>Enabled</th>
-          <th>Priority</th>
-          <th>Runtime</th>
-          <th>Humidity %</th>
-          <th>Temperature °C</th>
-          <th>Voltage V</th>
-          <th class="col-actions">Actions</th>
+          <th>{{ 'common.name' | translate }}</th>
+          <th>{{ 'job.colDevice' | translate }}</th>
+          <th>{{ 'job.colJobType' | translate }}</th>
+          <th>{{ 'job.colGroup' | translate }}</th>
+          <th>{{ 'job.colEnabled' | translate }}</th>
+          <th>{{ 'job.colPriority' | translate }}</th>
+          <th>{{ 'job.colRuntime' | translate }}</th>
+          <th>{{ 'job.colHumidity' | translate }}</th>
+          <th>{{ 'job.colTemp' | translate }}</th>
+          <th>{{ 'job.colVolt' | translate }}</th>
+          <th class="col-actions">{{ 'common.actions' | translate }}</th>
         </tr>
       </thead>
       <tbody>
         @if (loading() && jobs().length === 0) {
           <tr>
-            <td class="empty" colspan="12">Loading…</td>
+            <td class="empty" colspan="12">{{ 'common.loading' | translate }}</td>
           </tr>
         }
         @for (job of jobs(); track job.id) {
@@ -111,9 +111,9 @@
             <td>{{ jobGroupName(job) }}</td>
             <td>
               @if (job.enable) {
-                <span class="badge badge--on">Yes</span>
+                <span class="badge badge--on">{{ 'common.yes' | translate }}</span>
               } @else {
-                <span class="badge badge--off">No</span>
+                <span class="badge badge--off">{{ 'common.no' | translate }}</span>
               }
             </td>
             <td class="mono">{{ job.priority ?? '—' }}</td>
@@ -128,7 +128,7 @@
                 [disabled]="directRunningId() === job.id || cloningId() === job.id || deletingId() === job.id"
                 (click)="directRunJob(job)"
               >
-                {{ directRunningId() === job.id ? 'Running…' : 'Direct run' }}
+                {{ directRunningId() === job.id ? ('job.running' | translate) : ('job.directRun' | translate) }}
               </button>
               <button
                 type="button"
@@ -136,7 +136,7 @@
                 [disabled]="cloningId() === job.id || deletingId() === job.id"
                 (click)="cloneJob(job)"
               >
-                {{ cloningId() === job.id ? 'Cloning…' : 'Clone' }}
+                {{ cloningId() === job.id ? ('job.cloning' | translate) : ('job.clone' | translate) }}
               </button>
               <button
                 type="button"
@@ -144,14 +144,14 @@
                 [disabled]="deletingId() === job.id"
                 (click)="deleteJob(job)"
               >
-                {{ deletingId() === job.id ? 'Deleting…' : 'Delete' }}
+                {{ deletingId() === job.id ? ('common.deleting' | translate) : ('common.delete' | translate) }}
               </button>
             </td>
           </tr>
         } @empty {
           @if (!loading()) {
             <tr>
-              <td class="empty" colspan="12">No jobs found.</td>
+              <td class="empty" colspan="12">{{ 'job.noJobs' | translate }}</td>
             </tr>
           }
         }
@@ -159,3 +159,4 @@
     </table>
   </div>
 </div>
+

@@ -1,7 +1,7 @@
 <div class="app-shell">
   @if (currentUser(); as user) {
     <header class="app-header">
-      <a routerLink="/devices" class="brand">IoT Admin</a>
+      <a routerLink="/devices" class="brand">{{ 'nav.brand' | translate }}</a>
       <nav class="app-nav">
         <div class="nav-group">
           <a
@@ -10,7 +10,7 @@
             [routerLinkActiveOptions]="{ exact: false }"
             class="nav-group-label"
             target="devices"
-            >Devices</a
+            >{{ 'nav.devices' | translate }}</a
           >
           <div class="nav-group-menu">
             <a
@@ -18,15 +18,15 @@
               routerLinkActive="active"
               [routerLinkActiveOptions]="{ exact: true }"
               target="devices"
-              >All devices</a
+              >{{ 'nav.allDevices' | translate }}</a
             >
-            <a routerLink="/devices/new" routerLinkActive="active">Add device</a>
-            <a routerLink="/devices/import" routerLinkActive="active">Import devices</a>
-            <a routerLink="/devices/firmware" routerLinkActive="active">Firmware upload</a>
-            <a routerLink="/devices/info" routerLinkActive="active">Live info</a>
-            <a routerLink="/devices/gpio-call" routerLinkActive="active">GPIO call</a>
-            <a routerLink="/readv" routerLinkActive="active">ReadV</a>
-            <a routerLink="/pressure" routerLinkActive="active">PSI</a>
+            <a routerLink="/devices/new" routerLinkActive="active">{{ 'nav.addDevice' | translate }}</a>
+            <a routerLink="/devices/import" routerLinkActive="active">{{ 'nav.importDevices' | translate }}</a>
+            <a routerLink="/devices/firmware" routerLinkActive="active">{{ 'nav.firmwareUpload' | translate }}</a>
+            <a routerLink="/devices/info" routerLinkActive="active">{{ 'nav.liveInfo' | translate }}</a>
+            <a routerLink="/devices/gpio-call" routerLinkActive="active">{{ 'nav.gpioCall' | translate }}</a>
+            <a routerLink="/readv" routerLinkActive="active">{{ 'nav.readv' | translate }}</a>
+            <a routerLink="/pressure" routerLinkActive="active">{{ 'nav.psi' | translate }}</a>
           </div>
         </div>
         <div class="nav-group">
@@ -36,7 +36,7 @@
             [routerLinkActiveOptions]="{ exact: false }"
             class="nav-group-label"
             target="jobs"
-            >Jobs</a
+            >{{ 'nav.jobs' | translate }}</a
           >
           <div class="nav-group-menu">
             <a
@@ -44,42 +44,46 @@
               routerLinkActive="active"
               [routerLinkActiveOptions]="{ exact: false }"
               target="jobs"
-              >All jobs</a
+              >{{ 'nav.allJobs' | translate }}</a
             >
-            <a routerLink="/jobs/new" routerLinkActive="active">Add job</a>
-            <a routerLink="/jobs/import" routerLinkActive="active">Import jobs</a>
-            <a routerLink="/job-logs" routerLinkActive="active">Job logs</a>
+            <a routerLink="/jobs/new" routerLinkActive="active">{{ 'nav.addJob' | translate }}</a>
+            <a routerLink="/jobs/import" routerLinkActive="active">{{ 'nav.importJobs' | translate }}</a>
+            <a routerLink="/job-logs" routerLinkActive="active">{{ 'nav.jobLogs' | translate }}</a>
             <a
               routerLink="/job-types"
               routerLinkActive="active"
               [routerLinkActiveOptions]="{ exact: false }"
-              >All job types</a
+              >{{ 'nav.allJobTypes' | translate }}</a
             >
-            <a routerLink="/job-types/new" routerLinkActive="active">Add job type</a>
+            <a routerLink="/job-types/new" routerLinkActive="active">{{ 'nav.addJobType' | translate }}</a>
             <a
               routerLink="/job-groups"
               routerLinkActive="active"
               [routerLinkActiveOptions]="{ exact: false }"
-              >All job groups</a
+              >{{ 'nav.allJobGroups' | translate }}</a
             >
-            <a routerLink="/job-groups/new" routerLinkActive="active">Add job group</a>
+            <a routerLink="/job-groups/new" routerLinkActive="active">{{ 'nav.addJobGroup' | translate }}</a>
           </div>
         </div>
-        <a routerLink="/tasks" routerLinkActive="active" target="tasks">Tasks</a>
+        <a routerLink="/tasks" routerLinkActive="active" target="tasks">{{ 'nav.tasks' | translate }}</a>
       </nav>
       <div class="header-actions">
+        <button type="button" class="lang-toggle-btn" (click)="toggleLanguage()">
+          {{ translationService.lang() === 'en' ? 'ไทย (TH)' : 'English (EN)' }}
+        </button>
         <div class="api-time" [class.api-time--offline]="apiTimeOffline()">
-          <span class="api-time-label">API time @if (apiVersion()) { (v{{ apiVersion() }}) }</span>
-          <time class="api-time-value">{{ apiTime() }}</time>
+          <span class="api-time-label">{{ 'nav.apiTime' | translate }} @if (apiVersion()) { (v{{ apiVersion() }}) }</span>
+          <time class="api-time-value">{{ apiTime() | translate }}</time>
         </div>
         <div class="user-menu">
           <span class="user-name">{{ user.username }}</span>
           <div class="user-menu-dropdown">
             @if (user.role === 'ADMIN') {
-              <a routerLink="/users" routerLinkActive="active">Users</a>
+              <a routerLink="/users" routerLinkActive="active">{{ 'nav.users' | translate }}</a>
+              <a routerLink="/configs" routerLinkActive="active">{{ 'nav.configs' | translate }}</a>
             }
-            <a routerLink="/change-password" routerLinkActive="active">Change password</a>
-            <button type="button" class="logout-btn" (click)="logout()">Sign out</button>
+            <a routerLink="/change-password" routerLinkActive="active">{{ 'nav.changePassword' | translate }}</a>
+            <button type="button" class="logout-btn" (click)="logout()">{{ 'nav.signOut' | translate }}</button>
           </div>
         </div>
       </div>
@@ -89,3 +93,4 @@
     <router-outlet />
   </main>
 </div>
+

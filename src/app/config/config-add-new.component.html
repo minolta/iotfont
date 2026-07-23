@@ -1,0 +1,48 @@
+<div class="page">
+  <a routerLink="/configs" class="back">← Back to configurations</a>
+  <h1>Add configuration</h1>
+  <p class="hint">Create a system configuration key-value pair.</p>
+
+  @if (errorMessage(); as msg) {
+    <p class="error-banner" role="alert">{{ msg }}</p>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field">
+      <label for="config-template">Template (Optional)</label>
+      <select id="config-template" (change)="selectTemplate($any($event.target).value)" style="padding: 0.5rem; border-radius: 4px; border: 1px solid #ccc; width: 100%; max-width: 100%; box-sizing: border-box;">
+        <option value="">-- Custom Configuration / Choose Template --</option>
+        @for (tmpl of templates; track tmpl.key) {
+          <option [value]="tmpl.key">{{ tmpl.key }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field" [class.invalid]="form.controls.cfgKey.invalid && form.controls.cfgKey.touched">
+      <label for="config-key">Key</label>
+      <input id="config-key" type="text" formControlName="cfgKey" placeholder="e.g. joblog.max_per_job" autocomplete="off" />
+      @if (form.controls.cfgKey.invalid && form.controls.cfgKey.touched) {
+        <span class="err">Key is required.</span>
+      }
+    </div>
+
+    <div class="field" [class.invalid]="form.controls.cfgValue.invalid && form.controls.cfgValue.touched">
+      <label for="config-value">Value</label>
+      <input id="config-value" type="text" formControlName="cfgValue" placeholder="e.g. 50" autocomplete="off" />
+      @if (form.controls.cfgValue.invalid && form.controls.cfgValue.touched) {
+        <span class="err">Value is required.</span>
+      }
+    </div>
+
+    <div class="field">
+      <label for="config-description">Description</label>
+      <textarea id="config-description" formControlName="description" rows="3"></textarea>
+    </div>
+
+    <div class="actions">
+      <button type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Saving…' : 'Create configuration' }}
+      </button>
+    </div>
+  </form>
+</div>

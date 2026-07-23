@@ -25,11 +25,13 @@ import { jobsToExportPayload } from './job-export.util';
 import type { Job } from './job.model';
 import { JobService } from './job.service';
 import { TaskService } from '../task/task.service';
+import { TranslationService } from '../shared/translation.service';
+import { TranslatePipe } from '../shared/translate.pipe';
 
 @Component({
   selector: 'app-job-list',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   templateUrl: './job-list.component.html',
   styleUrl: '../shared/crud-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,6 +42,7 @@ export class JobListComponent {
   private readonly deviceService = inject(DeviceService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  readonly translationService = inject(TranslationService);
 
   readonly createdId = toSignal(
     this.route.queryParamMap.pipe(map((p) => p.get('created'))),
@@ -106,7 +109,7 @@ export class JobListComponent {
           switchMap(() =>
             request$.pipe(
               catchError(() => {
-                this.error.set('Could not load jobs.');
+                this.error.set(this.translationService.translate('job.loadError'));
                 return of([] as Job[]);
               }),
               finalize(() => this.loading.set(false)),
@@ -174,13 +177,13 @@ export class JobListComponent {
       .subscribe({
         next: (jobs) => {
           if (jobs.length === 0) {
-            this.exportError.set('No jobs to export.');
+            this.exportError.set(this.translationService.translate('job.noExportData'));
             return;
           }
           downloadJsonFile(jobsToExportPayload(jobs), `jobs-${timestampForFilename()}.json`);
         },
         error: (err: unknown) => {
-          this.exportError.set(formatHttpError(err, 'Could not export jobs.'));
+          this.exportError.set(formatHttpError(err, this.translationService.translate('job.exportError')));
         },
       });
   }
@@ -188,7 +191,8 @@ export class JobListComponent {
   deleteJob(job: Job): void {
     this.deleteError.set(null);
     const label = job.name?.trim() || `#${job.id}`;
-    if (!window.confirm(`Delete job "${label}"?`)) {
+    const confirmTemplate = this.translationService.translate('job.confirmDelete');
+    if (!window.confirm(confirmTemplate.replace('{name}', label))) {
       return;
     }
     this.deletingId.set(job.id);
@@ -198,7 +202,7 @@ export class JobListComponent {
       .subscribe({
         next: () => this.refreshNonce.update((n) => n + 1),
         error: (err: unknown) => {
-          this.deleteError.set(formatHttpError(err, 'Could not delete job.'));
+          this.deleteError.set(formatHttpError(err, this.translationService.translate('job.deleteError')));
         },
       });
   }
@@ -206,7 +210,8 @@ export class JobListComponent {
   cloneJob(job: Job): void {
     this.cloneError.set(null);
     const label = job.name?.trim() || `#${job.id}`;
-    if (!window.confirm(`Clone job "${label}"? The copy will be created disabled.`)) {
+    const confirmTemplate = this.translationService.translate('job.confirmClone');
+    if (!window.confirm(confirmTemplate.replace('{name}', label))) {
       return;
     }
     this.cloningId.set(job.id);
@@ -222,7 +227,7 @@ export class JobListComponent {
           });
         },
         error: (err: unknown) => {
-          this.cloneError.set(formatHttpError(err, 'Could not clone job.'));
+          this.cloneError.set(formatHttpError(err, this.translationService.translate('job.cloneError')));
         },
       });
   }
@@ -230,11 +235,8 @@ export class JobListComponent {
   directRunJob(job: Job): void {
     this.directRunError.set(null);
     const label = job.name?.trim() || `#${job.id}`;
-    if (
-      !window.confirm(
-        `Direct run job "${label}" now?\n\nBypasses schedule, temperature/humidity checks, and port conditions. Runs configured pumps and GPIO immediately.`,
-      )
-    ) {
+    const confirmTemplate = this.translationService.translate('job.confirmDirectRun');
+    if (!window.confirm(confirmTemplate.replace('{name}', label))) {
       return;
     }
     this.directRunningId.set(job.id);
@@ -244,8 +246,9 @@ export class JobListComponent {
       .subscribe({
         next: () => this.refreshNonce.update((n) => n + 1),
         error: (err: unknown) => {
-          this.directRunError.set(formatHttpError(err, 'Could not direct run job.'));
+          this.directRunError.set(formatHttpError(err, this.translationService.translate('job.directRunError')));
         },
       });
   }
 }
+

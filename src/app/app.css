@@ -262,3 +262,23 @@
 .app-main {
   flex: 1;
 }
+
+.lang-toggle-btn {
+  background: transparent;
+  color: #d1d5db;
+  border: 1px solid rgb(255 255 255 / 0.25);
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.lang-toggle-btn:hover {
+  color: #fff;
+  background: rgb(255 255 255 / 0.08);
+  border-color: rgb(255 255 255 / 0.5);
+}
+
