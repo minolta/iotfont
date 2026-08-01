@@ -56,16 +56,79 @@ export class DeviceGpioCallComponent implements OnInit, OnDestroy {
   readonly countdownActive = signal(false);
   private countdownIntervalId: any = null;
 
+  private static readonly STORAGE_KEY_ROWS = 'iot-device-gpio-call-rows';
+  private static readonly STORAGE_KEY_DELAY = 'iot-device-gpio-call-delay';
+
   // Expose JS globals for the template expressions
   protected readonly Number = Number;
   protected readonly Math = Math;
 
   ngOnInit(): void {
+    this.loadSavedState();
     this.loadDevices();
   }
 
   ngOnDestroy(): void {
     this.clearCountdown();
+  }
+
+  private loadSavedState(): void {
+    if (typeof localStorage === 'undefined') return;
+    try {
+      const savedDelay = localStorage.getItem(DeviceGpioCallComponent.STORAGE_KEY_DELAY);
+      if (savedDelay !== null) {
+        const parsedDelay = parseInt(savedDelay, 10);
+        if (!isNaN(parsedDelay) && parsedDelay >= 0) {
+          this.executionDelay.set(parsedDelay);
+        }
+      }
+
+      const savedRowsStr = localStorage.getItem(DeviceGpioCallComponent.STORAGE_KEY_ROWS);
+      if (savedRowsStr) {
+        const parsedRows = JSON.parse(savedRowsStr) as Partial<GpioCallRow>[];
+        if (Array.isArray(parsedRows) && parsedRows.length > 0) {
+          const restoredRows: GpioCallRow[] = parsedRows.map((r) => ({
+            id: r.id || (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 9)),
+            deviceId:
+              r.deviceId !== null && r.deviceId !== undefined && !isNaN(Number(r.deviceId))
+                ? Number(r.deviceId)
+                : null,
+            port: r.port || 'D1',
+            useCustomPort: !!r.useCustomPort,
+            customPort: r.customPort || '',
+            value: r.value === 0 ? 0 : 1,
+            delay: typeof r.delay === 'number' ? r.delay : 200,
+            wait: typeof r.wait === 'number' ? r.wait : 0,
+            status: 'idle',
+            message: null,
+            url: null,
+          }));
+          this.rows.set(restoredRows);
+        }
+      }
+    } catch {
+      // Ignore storage parse errors
+    }
+  }
+
+  private saveState(): void {
+    if (typeof localStorage === 'undefined') return;
+    try {
+      const exportableRows = this.rows().map((r) => ({
+        id: r.id,
+        deviceId: r.deviceId,
+        port: r.port,
+        useCustomPort: r.useCustomPort,
+        customPort: r.customPort,
+        value: r.value,
+        delay: r.delay,
+        wait: r.wait,
+      }));
+      localStorage.setItem(DeviceGpioCallComponent.STORAGE_KEY_ROWS, JSON.stringify(exportableRows));
+      localStorage.setItem(DeviceGpioCallComponent.STORAGE_KEY_DELAY, this.executionDelay().toString());
+    } catch {
+      // Ignore storage write errors
+    }
   }
 
   private loadDevices(): void {
@@ -82,8 +145,12 @@ export class DeviceGpioCallComponent implements OnInit, OnDestroy {
       )
       .subscribe((devices) => {
         this.devices.set(devices);
-        // Add an initial row once devices are loaded
-        if (devices.length > 0) {
+        // Recalculate preview URLs with updated devices list
+        this.rows.update((list) =>
+          list.map((r) => ({ ...r, url: this.calculateUrl(r) }))
+        );
+        // Add an initial row only if no saved rows were loaded
+        if (devices.length > 0 && this.rows().length === 0) {
           this.addRow();
         }
       });
@@ -109,10 +176,12 @@ export class DeviceGpioCallComponent implements OnInit, OnDestroy {
         url: null,
       },
     ]);
+    this.saveState();
   }
 
   removeRow(id: string): void {
     this.rows.update((list) => list.filter((r) => r.id !== id));
+    this.saveState();
   }
 
   updateRow(id: string, updates: Partial<GpioCallRow>): void {
@@ -125,6 +194,12 @@ export class DeviceGpioCallComponent implements OnInit, OnDestroy {
         return updated;
       })
     );
+    this.saveState();
+  }
+
+  updateExecutionDelay(val: number): void {
+    this.executionDelay.set(val);
+    this.saveState();
   }
 
   deviceLabel(device: Device): string {

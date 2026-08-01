@@ -33,14 +33,14 @@
               <!-- Device Dropdown -->
               <td>
                 <select
-                  [value]="row.deviceId"
+                  [value]="row.deviceId !== null && row.deviceId !== undefined ? row.deviceId : ''"
                   [disabled]="calling() || countdownActive()"
                   (change)="updateRow(row.id, { deviceId: $any($event.target).value ? Number($any($event.target).value) : null })"
                   class="form-control"
                 >
                   <option value="">Select device…</option>
                   @for (device of devices(); track device.id) {
-                    <option [value]="device.id">
+                    <option [value]="device.id" [selected]="device.id === row.deviceId">
                       #{{ device.id }} — {{ deviceLabel(device) }}
                     </option>
                   }
@@ -175,7 +175,7 @@
             step="1"
             [disabled]="calling() || countdownActive()"
             [value]="executionDelay()"
-            (input)="executionDelay.set(Math.max(0, Math.floor(Number($any($event.target).value || 0))))"
+            (input)="updateExecutionDelay(Math.max(0, Math.floor(Number($any($event.target).value || 0))))"
             class="form-control delay-input"
           />
         </div>
