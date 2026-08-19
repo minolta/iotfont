@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { FormArray, ReactiveFormsModule } from '@angular/forms';
 
 import type { Device } from '../device/device.model';
-import { JOB_PORT_LOGIC_OPTIONS } from './job-port.model';
+import { JOB_PORT_LOGIC_OPTIONS, JOB_PORT_OPTIONS } from './job-port.model';
 
 @Component({
   selector: 'app-job-ports-section',
@@ -20,6 +20,7 @@ export class JobPortsSectionComponent {
   readonly addPort = output<void>();
 
   readonly logicOptions = JOB_PORT_LOGIC_OPTIONS;
+  readonly portOptions = JOB_PORT_OPTIONS;
 
   removePort(index: number): void {
     if (this.disabled()) {
@@ -28,3 +29,4 @@ export class JobPortsSectionComponent {
     this.ports().removeAt(index);
   }
 }
+

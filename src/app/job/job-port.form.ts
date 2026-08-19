@@ -7,9 +7,10 @@ export function createPortFormGroup(
   value?: Partial<JobPortFormValue>,
   defaultDeviceId: number | null = null,
 ): FormGroup {
+  const initialPort = value?.port ? value.port.trim().toUpperCase() : 'D1';
   return fb.group({
     deviceId: [value?.deviceId ?? defaultDeviceId ?? '', Validators.required],
-    port: [value?.port ?? '', Validators.required],
+    port: [initialPort, Validators.required],
     logic: [value?.logic ?? 'High', Validators.required],
     runtime: [value?.runtime ?? ''],
     waittime: [value?.waittime ?? ''],
@@ -21,7 +22,7 @@ export function createPortFormGroup(
 export function jobPortsToFormValues(ports: JobPort[] | null | undefined): JobPortFormValue[] {
   return (ports ?? []).map((port) => ({
     deviceId: port.device_id ?? port.device?.id ?? null,
-    port: port.port ?? '',
+    port: port.port ? port.port.trim().toUpperCase() : 'D1',
     logic: port.logic ?? 'High',
     runtime: port.runtime ?? '',
     waittime: port.waittime ?? '',
@@ -43,7 +44,7 @@ export function readPortFormValues(
 ): JobPortFormValue[] {
   return rows.map((row) => ({
     deviceId: Number(row.deviceId),
-    port: row.port ?? '',
+    port: row.port ? row.port.trim().toUpperCase() : 'D1',
     logic: row.logic ?? 'High',
     runtime: row.runtime ?? '',
     waittime: row.waittime ?? '',
@@ -51,3 +52,4 @@ export function readPortFormValues(
     sortOrder: row.sortOrder ?? '',
   }));
 }
+

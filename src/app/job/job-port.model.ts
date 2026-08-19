@@ -37,3 +37,4 @@ export interface JobPortWritePayload {
 }
 
 export const JOB_PORT_LOGIC_OPTIONS = ['High', 'Low'] as const;
+export const JOB_PORT_OPTIONS = ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8'] as const;

@@ -40,15 +40,11 @@
 
             <div class="field">
               <label [for]="'port-name-' + $index">GPIO port</label>
-              <input
-                [id]="'port-name-' + $index"
-                type="text"
-                formControlName="port"
-                placeholder="D1"
-                spellcheck="false"
-                autocomplete="off"
-                [readonly]="disabled()"
-              />
+              <select [id]="'port-name-' + $index" formControlName="port" [disabled]="disabled()">
+                @for (option of portOptions; track option) {
+                  <option [value]="option">{{ option }}</option>
+                }
+              </select>
             </div>
 
             <div class="field">
