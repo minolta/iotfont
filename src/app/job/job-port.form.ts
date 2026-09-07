@@ -14,6 +14,7 @@ export function createPortFormGroup(
     logic: [value?.logic ?? 'High', Validators.required],
     runtime: [value?.runtime ?? ''],
     waittime: [value?.waittime ?? ''],
+    startDelay: [value?.startDelay ?? ''],
     enable: [value?.enable ?? true],
     sortOrder: [value?.sortOrder ?? ''],
   });
@@ -26,6 +27,7 @@ export function jobPortsToFormValues(ports: JobPort[] | null | undefined): JobPo
     logic: port.logic ?? 'High',
     runtime: port.runtime ?? '',
     waittime: port.waittime ?? '',
+    startDelay: port.start_delay ?? port.startDelay ?? '',
     enable: port.enable ?? true,
     sortOrder: port.sortOrder ?? '',
   }));
@@ -38,6 +40,7 @@ export function readPortFormValues(
     logic: string | null;
     runtime: string | number | null;
     waittime: string | number | null;
+    startDelay?: string | number | null;
     enable: boolean | null;
     sortOrder: string | number | null;
   }>,
@@ -48,6 +51,7 @@ export function readPortFormValues(
     logic: row.logic ?? 'High',
     runtime: row.runtime ?? '',
     waittime: row.waittime ?? '',
+    startDelay: row.startDelay ?? '',
     enable: !!row.enable,
     sortOrder: row.sortOrder ?? '',
   }));

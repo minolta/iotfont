@@ -57,6 +57,18 @@
             </div>
 
             <div class="field">
+              <label [for]="'port-startdelay-' + $index">Start delay (s)</label>
+              <input
+                [id]="'port-startdelay-' + $index"
+                type="number"
+                formControlName="startDelay"
+                min="0"
+                step="1"
+                [readonly]="disabled()"
+              />
+            </div>
+
+            <div class="field">
               <label [for]="'port-runtime-' + $index">Runtime (s)</label>
               <input
                 [id]="'port-runtime-' + $index"

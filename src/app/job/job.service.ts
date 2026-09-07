@@ -126,6 +126,7 @@ export class JobService {
       value: null,
       runtime: this.toNullableLong(port.runtime),
       waittime: this.toNullableLong(port.waittime),
+      start_delay: this.toNullableLong(port.startDelay),
       enable: port.enable,
       sortOrder: this.toNullableInt(port.sortOrder) ?? index,
     };

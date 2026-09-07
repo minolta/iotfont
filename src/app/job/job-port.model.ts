@@ -11,6 +11,8 @@ export interface JobPort {
   value: number | null;
   runtime: number | null;
   waittime: number | null;
+  start_delay?: number | null;
+  startDelay?: number | null;
   enable: boolean | null;
   sortOrder: number | null;
 }
@@ -21,6 +23,7 @@ export interface JobPortFormValue {
   logic: string;
   runtime: string | number | null;
   waittime: string | number | null;
+  startDelay: string | number | null;
   enable: boolean;
   sortOrder: string | number | null;
 }
@@ -32,6 +35,7 @@ export interface JobPortWritePayload {
   value: number | null;
   runtime: number | null;
   waittime: number | null;
+  start_delay: number | null;
   enable: boolean;
   sortOrder: number;
 }

@@ -63,6 +63,7 @@ export function jobToExportRecord(job: Job): JobExportRecord {
         value: port.value,
         runtime: port.runtime,
         waittime: port.waittime,
+        start_delay: port.start_delay ?? port.startDelay ?? null,
         enable: port.enable ?? true,
         sortOrder: port.sortOrder ?? 0,
       }),
