@@ -82,6 +82,28 @@
       <span class="field-hint">When enabled, START / RUN / ERROR / COMPLETE events are saved to the database.</span>
     </div>
 
+    <section class="humidity-range-section" aria-labelledby="job-email-section-heading">
+      <h2 id="job-email-section-heading">Email Notifications</h2>
+      <p class="field-hint">
+        Send automated email alerts when this job completes or encounters an error.
+      </p>
+      <div class="field">
+        <label for="job-email">Recipient email(s)</label>
+        <input id="job-email" type="email" formControlName="email" placeholder="e.g. user@example.com, admin@example.com" />
+        <span class="field-hint">Enter target email address(es), separated by commas.</span>
+      </div>
+      <div class="field-row">
+        <div class="field checkbox-field">
+          <input id="job-notify-complete" type="checkbox" formControlName="notifyOnComplete" />
+          <label for="job-notify-complete">Notify on Complete</label>
+        </div>
+        <div class="field checkbox-field">
+          <input id="job-notify-error" type="checkbox" formControlName="notifyOnError" />
+          <label for="job-notify-error">Notify on Error</label>
+        </div>
+      </div>
+    </section>
+
     <div class="field">
       <label for="job-priority">Priority</label>
       <input id="job-priority" type="number" formControlName="priority" step="1" />

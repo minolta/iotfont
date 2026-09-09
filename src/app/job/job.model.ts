@@ -19,6 +19,9 @@ export interface Job {
   enable: boolean | null;
   /** When true, job run events are saved to iot_job_log */
   enable_logs: boolean | null;
+  email?: string | null;
+  notify_on_complete?: boolean | null;
+  notify_on_error?: boolean | null;
   runtime: number | null;
   waittime: number | null;
   sdate: string | null;
@@ -53,6 +56,9 @@ export interface JobFormValue {
   jobGroupId: number | null;
   enable: boolean;
   enableLogs: boolean;
+  email: string;
+  notifyOnComplete: boolean;
+  notifyOnError: boolean;
   runtime: string | number | null;
   waittime: string | number | null;
   sdate: string;

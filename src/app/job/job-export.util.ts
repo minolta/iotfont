@@ -12,6 +12,9 @@ export interface JobExportRecord {
   jobgroup_id: number | null;
   enable: boolean;
   enable_logs: boolean;
+  email?: string | null;
+  notify_on_complete?: boolean;
+  notify_on_error?: boolean;
   runtime: number | null;
   waittime: number | null;
   sdate: string | null;
@@ -41,6 +44,9 @@ export function jobToExportRecord(job: Job): JobExportRecord {
     jobgroup_id: job.jobgroup_id ?? job.jobgroup?.id ?? null,
     enable: job.enable ?? true,
     enable_logs: job.enable_logs ?? false,
+    email: job.email ?? null,
+    notify_on_complete: job.notify_on_complete ?? false,
+    notify_on_error: job.notify_on_error ?? false,
     runtime: job.runtime,
     waittime: job.waittime,
     sdate: job.sdate,
