@@ -170,8 +170,8 @@ const GUIDES: Record<string, JobTypeGuide> = {
   solarcheck: {
     summary: 'ตรวจสถานะ solar แล้วบอก job ประเภท solar ว่ารันได้หรือไม่',
     howItWorks:
-      'อ่าน epp/epn จาก device → คำนวณ status = (epp − epn) + diff → ถ้า status > rang จะตั้ง solarCanRun=true ให้ job solar ใช้',
-    requiredFields: ['Device', 'Description หรือ Min humidity (rang) + Min temperature (diff)'],
+      'อ่าน epp/epn จาก device หรืออ่านค่า field "e" จาก 2 sensors (solar & pea) → คำนวณ result = pea - solar → status = result + diff → ถ้า status > rang จะตั้ง solarCanRun=true ให้ job solar ใช้',
+    requiredFields: ['Device หรือ 2 Sensors (label "solar" และ "pea")', 'Description หรือ Min humidity (rang) + Min temperature (diff)'],
     optionalFields: [
       'readv,<device_id> หรือ vbatt,<device_id> — แสดงค่าแรงดันใน status',
       'ช่วงเวลารัน',
@@ -182,6 +182,21 @@ const GUIDES: Record<string, JobTypeGuide> = {
       'readv,<device_id> / vbatt,<device_id> — อ้างอิง device อ่านแรงดัน',
     ],
     descriptionExamples: ['diff,-590|rang,200', 'diff,0|rang,150|readv,2'],
+  },
+  solarcheck2: {
+    summary: 'ตรวจสถานะ solar ด้วย 2 sensors (label "solar" และ "pea") โดยอ่าน field "e"',
+    howItWorks:
+      'อ่านค่า "e" จาก sensor "pea" และ "solar" → คำนวณ result = pea - solar → status = result + diff → ถ้า status > rang จะตั้ง solarCanRun=true',
+    requiredFields: ['Sensors (2 ตัว: 1 ตัว label "solar", 1 ตัว label "pea")', 'Description (diff,<offset>|rang,<threshold>)'],
+    optionalFields: [
+      'readv,<device_id> หรือ vbatt,<device_id> — แสดงค่าแรงดันใน status',
+      'ช่วงเวลารัน',
+    ],
+    descriptionOptions: [
+      'diff,<offset> — ค่า diff Offset ชดเชย',
+      'rang,<threshold> — เกณฑ์เปรียบเทียบ (rang)',
+    ],
+    descriptionExamples: ['diff,100|rang,200', 'diff,0|rang,150'],
   },
   solar: {
     summary: 'สั่ง GPIO เมื่อ solarcheck อนุญาต และสถานะ port ตรงเงื่อนไข',
@@ -245,6 +260,7 @@ export function jobTypeUsesDescriptionSyntax(name: string | null | undefined): b
   return (
     key === 'portjob' ||
     key === 'solarcheck' ||
+    key === 'solarcheck2' ||
     key === 'solar' ||
     key === 'humidity' ||
     key === 'runhbyd1' ||
